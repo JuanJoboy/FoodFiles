@@ -34,7 +34,7 @@ class Utils
 			}
 			else
 			{
-				return Color.lerp(const Color.fromARGB(255, 152, 27, 27), const Color.fromARGB(255, 27, 152, 5), (rating / 10));
+				return Color.lerp(const Color.fromARGB(255, 152, 27, 27), const Color.fromARGB(255, 27, 152, 5), (rating / 10)); // Slightly duller, so that it doesn't look weirdly neon on dark mode
 			}
 		}
 		else
@@ -48,6 +48,12 @@ class Utils
 				return Colors.black;
 			}
 		}
+	}
+
+	static Color getBackgroundColor(ThemeData theme)
+	{
+		// If the mode is light, then return surfaceContainerLow, else return blueGrey if its dark mode
+		return theme.brightness == Brightness.light ? theme.colorScheme.surfaceContainerLow : Colors.blueGrey;
 	}
 
 	// static Color? getColor(int? rating, ThemeData theme)

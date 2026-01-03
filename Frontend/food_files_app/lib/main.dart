@@ -1,4 +1,4 @@
-import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
+// import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:food_files_app/main_ui/feed/feed.dart";
 import "package:food_files_app/main_ui/post/post.dart";
@@ -7,19 +7,35 @@ import "package:food_files_app/main_ui/profile/profile.dart";
 import "package:food_files_app/main_ui/profile/folders/restaurant_folder.dart";
 import "package:food_files_app/utilities/utilities.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:google_fonts/google_fonts.dart';
 
 void main()
 {
 	runApp
 	(
-		MultiProvider
+		MultiProvider // Allows me to have multiple ChangeNotifiers
 		(
 			providers:
 			[
-				ChangeNotifierProvider(create: (context) => AllPosts()),
-				ChangeNotifierProvider(create: (context) => RestaurantFoldersList()),
-				ChangeNotifierProvider(create: (context) => LocationFoldersList()),
+				ChangeNotifierProvider(create: (context) => LocationFoldersList()), // A notifier that isn't dependent on anything, it's made first cause the one below needs it.
+				ChangeNotifierProxyProvider<LocationFoldersList, RestaurantFoldersList> // The restaurant notifier is dependent on the location notifier. It gives the restaurant list a reference to the location list without having to pass around "context" and make it dependent on the UI tree
+				(
+					create: (_) => RestaurantFoldersList(), // Called once
+					update: (_, locationList, restaurantList) // Called whenever the the dependency (location list) notifies listeners
+					{
+						restaurantList!.updateDependencies(locationList); // "!" (Null Assertion): Tells the Dart compiler that the object is definitely not null. If it is null, the app will throw a runtime error.
+						return restaurantList;
+					}
+				),
+				ChangeNotifierProxyProvider<RestaurantFoldersList, AllPosts>
+				(
+					create: (_) => AllPosts(),
+					update: (_, restaurantList, allPosts)
+					{
+						allPosts!.updateDependencies(restaurantList);
+						return allPosts;
+					}
+				),
 			],
 			child: const MyApp(), // The entire app now has access to a list of providers, rather than just creating and listening to 1
 		)
@@ -44,7 +60,7 @@ class MyApp extends StatelessWidget
 				colorScheme: ColorScheme.fromSeed
 				(
 					seedColor: mySeed,
-					brightness: Brightness.light,
+					brightness: Brightness.light, // Light Mode
 				),
 			),
 			darkTheme: ThemeData
@@ -53,11 +69,11 @@ class MyApp extends StatelessWidget
 				colorScheme: ColorScheme.fromSeed
 				(
 					seedColor: mySeed,
-					brightness: Brightness.dark,
+					brightness: Brightness.dark, // Dark Mode
 				),
 			),
-			themeMode: ThemeMode.light,
-			home: const MyHomePage(),
+			themeMode: ThemeMode.system, // Auto sets to the device's setting
+			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);
 	}
 }
@@ -77,17 +93,13 @@ class _MyHomePageState extends State<MyHomePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-		final Widget page = getCurrentPage(selectedIndex);
-
 		ColoredBox mainArea = ColoredBox // Defines the main content container.
 		(
-			color: Theme.of(context).brightness == Brightness.light ? colorScheme.surfaceContainerHighest : Colors.blueGrey, // Sets a subtle background color.
+			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
 			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
 			(
 				duration: const Duration(milliseconds: 200),
-				child: page,
+				child: getCurrentPage(selectedIndex),
 			),
 		);
 
@@ -99,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage>
 
 				if(device == Device.phone)
 				{
-					return Scaffold // Use scaffold instead of column so that any space i missed out on isnt pure black. Scaffold works better on phones and has a dedicated nav bar parameter
+					return Scaffold // Use scaffold instead of column so that any space i missed out on isn't pure black. Scaffold works better on phones and has a dedicated nav bar parameter
 					(
 						body: mainArea, // put the main area above the mobile nav bar
 						bottomNavigationBar: mobileNavigationBar()
@@ -140,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage>
 						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
 						child: const Icon(Icons.home_rounded, size: 30),
 					),
-					label: ""
+					label: "" // Nav items need labels but I dont actually want any text
 				),
 				BottomNavigationBarItem
 				(
@@ -161,12 +173,12 @@ class _MyHomePageState extends State<MyHomePage>
 					label: ""
 				),
 			],
-			currentIndex: selectedIndex,
+			currentIndex: selectedIndex, // Sets the page to the feed page on start up
 			onTap: (value) // When a tab is tapped, setState tells Flutter the selectedIndex changed, triggering a rebuild to show the new page.
 			{
 				setState( ()
 				{
-					selectedIndex = value;
+					selectedIndex = value; // Tapping on a nav bar item changes the page
 				});
 			},
 		);

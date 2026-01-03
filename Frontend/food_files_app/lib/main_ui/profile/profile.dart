@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_files_app/main_ui/feed/feed.dart';
-import 'package:food_files_app/main_ui/post/post.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
 import 'package:food_files_app/utilities/utilities.dart';
-import 'package:provider/provider.dart';
 
 class Profile
 {
@@ -32,17 +30,13 @@ class _ProfilePageState extends State<ProfilePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-		Widget page = getCurrentPage(selectedIndex);
-
 		ColoredBox mainArea = ColoredBox // Defines the main content container.
 		(
-			color: Theme.of(context).brightness == Brightness.light ? colorScheme.surfaceContainerHighest : Colors.blueGrey, // Sets a subtle background color.
+			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
 			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
 			(
 				duration: const Duration(milliseconds: 200),
-				child: page,
+				child: getCurrentPage(selectedIndex),
 			),
 		);
 
@@ -64,35 +58,32 @@ class _ProfilePageState extends State<ProfilePage>
 				Text("Following: $following"),
 				Text(bio),
 
-				ElevatedButton
-				(
-					onPressed: ()
-					{
-						setState(()
-						{
-							selectedIndex = 0;
-						});
-					},
-					child: const Icon(Icons.restaurant_menu)
-				),
-				ElevatedButton
-				(
-					onPressed: ()
-					{
-						setState(()
-						{
-							selectedIndex = 1;
-						});
-					},
-					child: const Icon(Icons.list_sharp)
-				),
+				profileTab(0, Icons.restaurant_menu), // Shows the posts in their folders
+				profileTab(1, Icons.list_sharp), // Shows ... TODO: ADD MORE TABS
+
 				Expanded
 				(
-					child: mainArea,
+					child: mainArea, // Shows the actual tab page below the profile details and tab buttons
 				)
 			],
 		);
   	}
+
+	// Tabs in the profile that transports the user to different sections such as the folder section, a custom list section, etc
+	Widget profileTab(int selectedIndex, IconData icon)
+	{
+		return ElevatedButton
+		(
+			onPressed: ()
+			{
+				setState(()
+				{
+					selectedIndex = 0;
+				});
+			},
+			child: Icon(icon)
+		);
+	}
 
 	Widget getCurrentPage(int selectedIndex)
 	{

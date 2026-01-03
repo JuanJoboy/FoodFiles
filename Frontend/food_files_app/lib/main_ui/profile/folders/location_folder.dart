@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:food_files_app/main_ui/feed/feed.dart';
-import 'package:food_files_app/main_ui/profile/folders/filed_food.dart';
-import 'package:provider/provider.dart';
+import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
+import 'package:food_files_app/utilities/utilities.dart';
 
 class LocationFolderPage extends StatefulWidget
 {
-	const LocationFolderPage({super.key});
+	final RestaurantFolder restaurantFolder;
+	const LocationFolderPage(this.restaurantFolder, {super.key});
 
 	@override
 	State<LocationFolderPage> createState() => _LocationFolderPageState();
@@ -16,18 +17,78 @@ class _LocationFolderPageState extends State<LocationFolderPage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final LocationFoldersList list = context.watch<LocationFoldersList>();
-
-		return Expanded
+		return Scaffold
 		(
-			child: list.foldersList.isNotEmpty ? ListView.builder
+			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
+			appBar: AppBar(title: const Text("Location Folders")), // Adds this text and a back button
+			body: Column
 			(
-				itemCount: list.foldersList.length,
-				itemBuilder: (context, index)
+				children:
+				[
+					Expanded
+					(
+						child: widget.restaurantFolder.locationFolderList.isNotEmpty ? ListView.builder
+						(
+							itemCount: widget.restaurantFolder.locationFolderList.length,
+							itemBuilder: (context, index)
+							{
+								return LocationFolderWidget(widget.restaurantFolder.locationFolderList, index, widget.restaurantFolder.folderName);
+							},
+						) : const Center(child: Text("No meals have been filed :(")),
+					),
+				],
+			),
+		);
+	}
+}
+
+class LocationFolderWidget extends StatefulWidget
+{
+	final List<LocationFolder> list;
+	final int index;
+	final String restaurantName;
+	const LocationFolderWidget(this.list, this.index, this.restaurantName, {super.key});
+
+	@override
+	State<LocationFolderWidget> createState() => _LocationFolderWidgetState();
+}
+
+class _LocationFolderWidgetState extends State<LocationFolderWidget>
+{
+	@override
+	Widget build(BuildContext context)
+	{
+		final String restaurantName = widget.restaurantName;
+		final String locationName = widget.list[widget.index].folderName;
+
+		ColoredBox mainArea = ColoredBox // Defines the main content container.
+		(
+			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
+			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
+			(
+				duration: const Duration(milliseconds: 200),
+				child: FeedPage.filedMeals(restaurantName, locationName),
+			),
+		);
+
+		return Card
+		(
+			child: InkWell
+			(
+				onTap: ()
 				{
-					return LocationFolderWidget(list.foldersList, index);
-				},
-			) : const Center(child: Text("No meals have been filed :(")) // If the list isn't empty then only print this text
+					Navigator.push
+					(
+						context,
+						MaterialPageRoute(builder: (context) => mainArea), // Clicking on a location shows all the posts that are filtered by restaurant and location
+					);
+    			},
+				child: Padding
+				(
+      				padding: const EdgeInsets.all(16.0),
+      				child: Text(locationName, textAlign: TextAlign.center,),
+				),
+  			),
 		);
 	}
 }
@@ -39,64 +100,13 @@ class LocationFolder
 	LocationFolder(this.folderName);
 }
 
-class LocationFolderWidget extends StatefulWidget
-{
-	final List<LocationFolder> list;
-	final int index;
-	const LocationFolderWidget(this.list, this.index, {super.key});
-
-	@override
-	State<LocationFolderWidget> createState() => _LocationFolderWidgetState();
-}
-
-class _LocationFolderWidgetState extends State<LocationFolderWidget>
-{
-	@override
-	Widget build(BuildContext context)
-	{
-		final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
-		ColoredBox mainArea = ColoredBox // Defines the main content container.
-		(
-			color: Theme.of(context).brightness == Brightness.light ? colorScheme.surfaceContainerHighest : Colors.blueGrey, // Sets a subtle background color.
-			child: const AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
-			(
-				duration: Duration(milliseconds: 200),
-				child: FiledFoodPage(),
-			),
-		);
-
-		final String folderName = widget.list[widget.index].folderName;
-
-		return Card
-		(
-			child: InkWell
-			(
-				onTap: ()
-				{
-					Navigator.push
-					(
-						context,
-						MaterialPageRoute(builder: (context) => mainArea),
-					);
-    			},
-				child: Padding
-				(
-      				padding: const EdgeInsets.all(16.0),
-      				child: Text(folderName, textAlign: TextAlign.center,),
-				),
-  			),
-		);
-	}
-}
-
 class LocationFoldersList extends ChangeNotifier
 {
 	final List<LocationFolder> foldersList = List.empty(growable: true);
 
 	void createFolder(LocationFolder folder)
 	{
-		foldersList.insert(0, folder);
+		foldersList.insert(0, folder); // Adds the location folder to the location list
 		notifyListeners();
 	}
 }
