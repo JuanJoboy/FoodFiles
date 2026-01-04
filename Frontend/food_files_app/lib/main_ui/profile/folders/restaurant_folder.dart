@@ -53,16 +53,6 @@ class _RestaurantFolderWidgetState extends State<RestaurantFolderWidget>
 	@override
 	Widget build(BuildContext context)
 	{
-		ColoredBox mainArea = ColoredBox // Defines the main content container.
-		(
-			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
-			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
-			(
-				duration: const Duration(milliseconds: 200),
-				child: LocationFolderPage(widget.list[widget.index]), // Takes you to the page that shows all the locations connected to the restaurant
-			),
-		);
-
 		final String folderName = widget.list[widget.index].folderName; // "widget" allows me to access the fields within the stateful widget above
 
 		return Card
@@ -76,7 +66,7 @@ class _RestaurantFolderWidgetState extends State<RestaurantFolderWidget>
 						Navigator.push
 						(
 							context,
-							MaterialPageRoute(builder: (context) => mainArea), // Takes you to the page that shows all the locations connected to the restaurant
+							MaterialPageRoute(builder: (context) => Utils.switchPage(context, LocationFolderPage(widget.list[widget.index]))) // Takes you to the page that shows all the locations connected to the restaurant
 						);
 					});
     			},

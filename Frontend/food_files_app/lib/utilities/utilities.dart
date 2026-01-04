@@ -56,6 +56,19 @@ class Utils
 		return theme.brightness == Brightness.light ? theme.colorScheme.surfaceContainerLow : Colors.blueGrey;
 	}
 
+	static ColoredBox switchPage(BuildContext context, Widget nextPage)
+	{
+		return ColoredBox
+		(
+			color: Utils.getBackgroundColor(Theme.of(context)), // Sets the background colour
+			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
+			(
+				duration: const Duration(milliseconds: 200), // Cross fade duration
+				child: nextPage, // Goes to the next page
+			)
+		);
+	}
+
 	// static Color? getColor(int? rating, ThemeData theme)
 	// {
 	// 	final bool lightMode = theme.brightness == Brightness.light;

@@ -2,15 +2,20 @@
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:food_files_app/main_ui/feed/feed.dart";
 import "package:food_files_app/main_ui/post/post.dart";
+// import "package:food_files_app/main_ui/post/post2.dart";
 import "package:food_files_app/main_ui/profile/folders/location_folder.dart";
 import "package:food_files_app/main_ui/profile/profile.dart";
 import "package:food_files_app/main_ui/profile/folders/restaurant_folder.dart";
 import "package:food_files_app/utilities/utilities.dart";
+import "package:mapbox_maps_flutter/mapbox_maps_flutter.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
 
 void main()
 {
+	// Map Box stuff
+	WidgetsFlutterBinding.ensureInitialized();
+
 	runApp
 	(
 		MultiProvider // Allows me to have multiple ChangeNotifiers
@@ -93,15 +98,7 @@ class _MyHomePageState extends State<MyHomePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		ColoredBox mainArea = ColoredBox // Defines the main content container.
-		(
-			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
-			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
-			(
-				duration: const Duration(milliseconds: 200),
-				child: getCurrentPage(selectedIndex),
-			),
-		);
+		final ColoredBox mainArea = Utils.switchPage(context, getCurrentPage(selectedIndex));
 
 		return LayoutBuilder
 		(
@@ -134,6 +131,7 @@ class _MyHomePageState extends State<MyHomePage>
 		{
 			0 => const FeedPage(),
 			1 => const PostPage(),
+			// 1 => const MapPage(),
 			2 => const ProfilePage(),
 			_ => const FeedPage()
 		};

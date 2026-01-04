@@ -30,16 +30,6 @@ class _ProfilePageState extends State<ProfilePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		ColoredBox mainArea = ColoredBox // Defines the main content container.
-		(
-			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
-			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
-			(
-				duration: const Duration(milliseconds: 200),
-				child: getCurrentPage(selectedIndex),
-			),
-		);
-
 		// final Image profilePicture = ;
 		final String accountName = "Juan";
 		final int numberOfPosts = 3;
@@ -63,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage>
 
 				Expanded
 				(
-					child: mainArea, // Shows the actual tab page below the profile details and tab buttons
+					child: Utils.switchPage(context, getCurrentPage(selectedIndex)), // Shows the actual tab page below the profile details and tab buttons
 				)
 			],
 		);

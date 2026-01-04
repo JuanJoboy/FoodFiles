@@ -61,16 +61,6 @@ class _LocationFolderWidgetState extends State<LocationFolderWidget>
 		final String restaurantName = widget.restaurantName;
 		final String locationName = widget.list[widget.index].folderName;
 
-		ColoredBox mainArea = ColoredBox // Defines the main content container.
-		(
-			color: Utils.getBackgroundColor(Theme.of(context)), // Sets a subtle background color.
-			child: AnimatedSwitcher // Automatically cross-fades between pages when the page changes.
-			(
-				duration: const Duration(milliseconds: 200),
-				child: FeedPage.filedMeals(restaurantName, locationName),
-			),
-		);
-
 		return Card
 		(
 			child: InkWell
@@ -80,7 +70,7 @@ class _LocationFolderWidgetState extends State<LocationFolderWidget>
 					Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => mainArea), // Clicking on a location shows all the posts that are filtered by restaurant and location
+						MaterialPageRoute(builder: (context) => Utils.switchPage(context, FeedPage.filedMeals(restaurantName, locationName))), // Clicking on a location shows all the posts that are filtered by restaurant and location
 					);
     			},
 				child: Padding

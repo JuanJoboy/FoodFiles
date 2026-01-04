@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The <manifest> tag is the container for the entire file. The <application> tag is specifically for the app's code and activities. Permissions are "system-level" declarations, so they sit outside the application block but inside the manifest. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <application
         android:label="food_files_app"
         android:name="${applicationName}"
