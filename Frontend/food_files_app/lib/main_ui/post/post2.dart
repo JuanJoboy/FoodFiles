@@ -47,7 +47,8 @@ class _MapPageState extends State<MapPage>
 	String restaurant = "Unknown Restaurant";
 	String location = "Unknown Location";
 
-	GeoCodingApi geoCoding = GeoCodingApi(limit: 1);
+	static const String _key = String.fromEnvironment("ACCESS_TOKEN");
+	GeoCodingApi _geoCoding = GeoCodingApi(apiKey: _key, limit: 1);
 	
 	Future<void> requestLocationPermission() async
 	{
@@ -65,13 +66,15 @@ class _MapPageState extends State<MapPage>
 				return;
 			}
 
-			geo.Position position = await geo.Geolocator.getCurrentPosition(); // Do the method call outside the setState so that i dont have to make it async, and also so that I can set the users position within the set state.
-			setState(() // Forces a rebuild of the ui and sets the permission
+			await geo.Geolocator.getCurrentPosition().then((position)
 			{
-				_permissionGranted = true;
-				_userPosition = position;
-			});
-			
+				setState(() // Forces a rebuild of the ui and sets the permission
+				{
+					_permissionGranted = true;
+					_userPosition = position;
+					flyCameraTo(_userPosition.longitude, _userPosition.latitude);
+				});
+			}); // Do the method call outside the setState so that i dont have to make it async, and also so that I can set the users position within the set state.
 		}
 		else if(status.isPermanentlyDenied)
 		{
@@ -109,8 +112,8 @@ class _MapPageState extends State<MapPage>
 			(
 				children:
 				[
+					map(context, longitude, latitude, restaurant, location), // Show the map
 					searchBar(), // Show the search bar
-					map(context, longitude, latitude, restaurant, location) // Show the map
 				],
 			)
 		);
@@ -132,21 +135,20 @@ class _MapPageState extends State<MapPage>
 						controller: controller,
 						onTap: ()
 						{
-							controller.openView();
-							getInfoFromSearch(controller.text).then((info) => flyCameraTo(info.$1, info.$2));
+							// controller.openView();
 						},
 						onChanged: (_)
 						{
-							controller.openView();
+							// controller.openView();
 						},
 						onSubmitted: (value)
 						{
-							controller.closeView(value);
+							// controller.closeView(value);
 							getInfoFromSearch(value).then((info) => flyCameraTo(info.$1, info.$2));
 						},
 						onTapOutside: (event)
 						{
-							controller.closeView(controller.text);
+							// controller.closeView(controller.text);
 						},
 					);
 				},
@@ -162,7 +164,7 @@ class _MapPageState extends State<MapPage>
 							{
 								setState(()
 								{
-									controller.closeView(item);
+									// controller.closeView(item);
 								});
 							},
 						);
@@ -176,19 +178,18 @@ class _MapPageState extends State<MapPage>
 	{
 		return MapWidget
 		(
-			// Set the initial camera at 0, 0 so that it flies into the real coordinates below
-			cameraOptions: CameraOptions
-			(
-				center: Point(coordinates: Position(0, 0)),
-				zoom: 2,
-				bearing: 0,
-				pitch: 0,
-			),
-
 			onMapCreated: (mapController)
 			{
 				_mapboxMap = mapController;
-				flyCameraTo(longitude, latitude); // When the map is made, fly the camera to the users current location or 0, 0 if they denied location permissions
+				
+				if(longitude == 0 && latitude == 0)
+				{
+					flyCameraTo(longitude, latitude, zoom: 2); // When the map is made, fly the camera to the users current location or 0, 0 if they denied location permissions
+				}
+				else
+				{
+					flyCameraTo(longitude, latitude);
+				}
 			},
 
 			onTapListener: (mapContext) // Cant use async here since, the map engine triggers the tap event and moves on immediately to keep the map responsive (60fps). It doesn't want to "wait" for a network request to finish before allowing the user to zoom or scroll again.
@@ -202,62 +203,79 @@ class _MapPageState extends State<MapPage>
 					{
 						restaurant = info.$1;
 						location = info.$2;
+
+						if(mounted) // Needed cause BuildContext doesn't like to go through between async methods
+						{
+							setState(()
+							{
+								Navigator.push
+								(
+									context,
+									MaterialPageRoute(builder: (context) => Utils.switchPage(context, CalendarPage(restaurant, location))), // Also the method shouldn't be async, otherwise this method wouldn't play nice. And it should only happen after restaurant and location have actually been found. Otherwise it can move on when the async stuff hasn't finished yet
+								);
+							});
+						}
 					});
 				});
-				Utils.switchPage(context, CalendarPage(restaurant, location)); // Also the method shouldn't be async, otherwise this method wouldn't play nice, as BuildContext doesn't like to go through between async methods
 			},
 		);
 	}
 
 	Future<(double, double)> getInfoFromSearch(String search) async
 	{
-		var response = await geoCoding.getPlaces(search);
+		var response = await _geoCoding.getPlaces(search);
 		
 		double longitude = 0;
 		double latitude = 0;
 
-		if(response.success!.isNotEmpty) // If tap was successful
+		if(response.success != null)
 		{
-			MapBoxPlace place = response.success!.first; // Gets the place that was searched
+			if(response.success!.isNotEmpty) // If tap was successful
+			{
+				MapBoxPlace place = response.success!.first; // Gets the first place in the list of places that was found from the search query
 
-			// If the place was null, return 0 as the coordinates
-			longitude = place.geometry?.coordinates.long ?? longitude;
-			latitude = place.geometry?.coordinates.lat ?? latitude;
+				// If the place was null, return 0 as the coordinates
+				longitude = place.geometry?.coordinates.long ?? longitude;
+				latitude = place.geometry?.coordinates.lat ?? latitude;
+			}
 		}
 
-		return (longitude, latitude); // Return both strings together
+		return (longitude, latitude);
 	}
 
 	Future<(String, String)> getInfoFromTap(double longitude, double latitude) async
 	{
-		var response = await geoCoding.getAddress((long: longitude, lat: latitude));
+		var response = await _geoCoding.getAddress((long: longitude, lat: latitude));
 
-		if(response.success!.isNotEmpty) // If tap was successful
+		if(response.success != null)
 		{
-			MapBoxPlace place = response.success!.first; // Get the place that was tapped on
-			
-			// If the place is somehow null, return unknown
-			restaurant = place.text ?? restaurant;
-			location = place.placeName ?? location;
+			if(response.success!.isNotEmpty) // If tap was successful
+			{
+				MapBoxPlace place = response.success!.first; // Get the place that was tapped on
+				
+				// If the place is somehow null, return unknown
+				restaurant = place.text ?? restaurant;
+				location = place.placeName ?? location;
+			}
 		}
 
 		return (restaurant, location); // Return both strings together
 	}
 
-	void flyCameraTo(double longitude, double latitude)
+	void flyCameraTo(double longitude, double latitude, {double? zoom})
 	{
 		_mapboxMap.flyTo
 		(
 			CameraOptions
 			(
 				center: Point(coordinates: Position(longitude, latitude)),
-				zoom: 2,
+				zoom: zoom ?? 12,
 				bearing: 0,
 				pitch: 0,
 			),
 			MapAnimationOptions
 			(
-				duration: 2000, // Already in milliseconds (1000 = 1 second)
+				duration: 4000, // Already in milliseconds (1000 = 1 second)
 				startDelay: 0
 			)
 		);
