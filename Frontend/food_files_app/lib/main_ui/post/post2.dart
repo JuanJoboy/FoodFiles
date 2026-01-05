@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:food_files_app/main_ui/feed/feed.dart';
 import 'package:food_files_app/main_ui/profile/folders/location_folder.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
 import 'package:food_files_app/utilities/utilities.dart';
@@ -7,7 +9,6 @@ import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 
 class Post
@@ -42,6 +43,9 @@ class _MapPageState extends State<MapPage>
 {
 	bool _permissionGranted = false;
 	late geo.Position _userPosition;
+	late MapboxMap _mapboxMap;
+	String restaurant = "Unknown Restaurant";
+	String location = "Unknown Location";
 
 	GeoCodingApi geoCoding = GeoCodingApi(limit: 1);
 	
@@ -88,67 +92,175 @@ class _MapPageState extends State<MapPage>
 	{
 		if(_permissionGranted)
 		{
-			return displayMap(context, _userPosition.longitude, _userPosition.latitude);
+			return displayMapAndSearchBar(context, _userPosition.longitude, _userPosition.latitude);
 		}
 		else
 		{
-			return displayMap(context, 0, 0);
+			return displayMapAndSearchBar(context, 0, 0);
 		}
 	}
 
-	Widget displayMap(BuildContext context, num longitude, num latitude)
+	Widget displayMapAndSearchBar(BuildContext context, double longitude, double latitude)
 	{
-		final String restaurant = "";
-		final String location = "";
-
 		return Scaffold
 		(
 			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
-			body: MapWidget
+			body: Stack // I use stack instead of a column, so that the search bar is mixed with the map, like google maps. Instead of being in like separate sections
 			(
-				cameraOptions: CameraOptions
-				(
-					center: Point(coordinates: Position(longitude, latitude)),
-					zoom: 2,
-					bearing: 0,
-					pitch: 0,
-				),
-				onTapListener: (mapContext) async
-				{
-					getInfoFromTap(mapContext.point.coordinates.lat.toDouble(), mapContext.point.coordinates.lng.toDouble());
-					Utils.switchPage(context, CalendarPage(restaurant, location));
-				},
-				// Add a search bar, and make the camera fly to the location thats entered, for taps and searching. 
+				children:
+				[
+					searchBar(), // Show the search bar
+					map(context, longitude, latitude, restaurant, location) // Show the map
+				],
 			)
 		);
 	}
 
-	Future<(String?, String?)> getInfoFromTap(double latitude, double longitude) async
+	Widget searchBar()
 	{
-		var response = await geoCoding.getAddress((lat: latitude, long: longitude));
-		return getInfo(response);
+		return Padding
+		(
+			padding: const EdgeInsets.all(8),
+			child: SearchAnchor
+			(
+				builder: (BuildContext context, SearchController controller)
+				{
+					return SearchBar
+					(
+						padding: const WidgetStatePropertyAll<EdgeInsets>(EdgeInsets.symmetric(horizontal: 16.0)),
+						leading: const Icon(Icons.search), // leading places it at the start, trailing would place it at the end
+						controller: controller,
+						onTap: ()
+						{
+							controller.openView();
+							getInfoFromSearch(controller.text).then((info) => flyCameraTo(info.$1, info.$2));
+						},
+						onChanged: (_)
+						{
+							controller.openView();
+						},
+						onSubmitted: (value)
+						{
+							controller.closeView(value);
+							getInfoFromSearch(value).then((info) => flyCameraTo(info.$1, info.$2));
+						},
+						onTapOutside: (event)
+						{
+							controller.closeView(controller.text);
+						},
+					);
+				},
+				suggestionsBuilder: (BuildContext context, SearchController controller)
+				{
+					return List<ListTile>.generate(5, (int index)
+					{
+						final String item = 'item $index';
+						return ListTile
+						(
+							title: Text(item),
+							onTap: ()
+							{
+								setState(()
+								{
+									controller.closeView(item);
+								});
+							},
+						);
+					});
+				},
+			),
+        );
 	}
 
-	Future<(String?, String?)> getInfoFromSearch(String search) async
+	Widget map(BuildContext context, double longitude, double latitude, String restaurant, String location)
+	{
+		return MapWidget
+		(
+			// Set the initial camera at 0, 0 so that it flies into the real coordinates below
+			cameraOptions: CameraOptions
+			(
+				center: Point(coordinates: Position(0, 0)),
+				zoom: 2,
+				bearing: 0,
+				pitch: 0,
+			),
+
+			onMapCreated: (mapController)
+			{
+				_mapboxMap = mapController;
+				flyCameraTo(longitude, latitude); // When the map is made, fly the camera to the users current location or 0, 0 if they denied location permissions
+			},
+
+			onTapListener: (mapContext) // Cant use async here since, the map engine triggers the tap event and moves on immediately to keep the map responsive (60fps). It doesn't want to "wait" for a network request to finish before allowing the user to zoom or scroll again.
+			{
+				double long = mapContext.point.coordinates.lng.toDouble();
+				double lat = mapContext.point.coordinates.lat.toDouble();
+
+				getInfoFromTap(long, lat).then((info) // Since the method isn't async, I use .then() to do the rest of the functionality
+				{
+					setState(()
+					{
+						restaurant = info.$1;
+						location = info.$2;
+					});
+				});
+				Utils.switchPage(context, CalendarPage(restaurant, location)); // Also the method shouldn't be async, otherwise this method wouldn't play nice, as BuildContext doesn't like to go through between async methods
+			},
+		);
+	}
+
+	Future<(double, double)> getInfoFromSearch(String search) async
 	{
 		var response = await geoCoding.getPlaces(search);
-		return getInfo(response);
-	}
+		
+		double longitude = 0;
+		double latitude = 0;
 
-	(String?, String?) getInfo(var response)
-	{
-		String? restaurant = "Unknown Restaurant";
-		String? location = "Unknown Location";
-
-		if(response.success!.isNotEmpty)
+		if(response.success!.isNotEmpty) // If tap was successful
 		{
-			MapBoxPlace place = response.success!.first;	
+			MapBoxPlace place = response.success!.first; // Gets the place that was searched
 
-			restaurant = place.text;
-			location = place.placeName;
+			// If the place was null, return 0 as the coordinates
+			longitude = place.geometry?.coordinates.long ?? longitude;
+			latitude = place.geometry?.coordinates.lat ?? latitude;
 		}
 
-		return (restaurant, location);
+		return (longitude, latitude); // Return both strings together
+	}
+
+	Future<(String, String)> getInfoFromTap(double longitude, double latitude) async
+	{
+		var response = await geoCoding.getAddress((long: longitude, lat: latitude));
+
+		if(response.success!.isNotEmpty) // If tap was successful
+		{
+			MapBoxPlace place = response.success!.first; // Get the place that was tapped on
+			
+			// If the place is somehow null, return unknown
+			restaurant = place.text ?? restaurant;
+			location = place.placeName ?? location;
+		}
+
+		return (restaurant, location); // Return both strings together
+	}
+
+	void flyCameraTo(double longitude, double latitude)
+	{
+		_mapboxMap.flyTo
+		(
+			CameraOptions
+			(
+				center: Point(coordinates: Position(longitude, latitude)),
+				zoom: 2,
+				bearing: 0,
+				pitch: 0,
+			),
+			MapAnimationOptions
+			(
+				duration: 2000, // Already in milliseconds (1000 = 1 second)
+				startDelay: 0
+			)
+		);
 	}
 }
 
@@ -170,41 +282,46 @@ class _CalendarPageState extends State<CalendarPage>
 	{
 		DateTime selectedDay = DateTime.now(); // The day that's actually selected
 
-		return Padding
+		return Scaffold
 		(
-			padding: const EdgeInsets.all(15.0),
-			child: Column
+			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
+			appBar: AppBar(title: const Text("Calendar")),
+			body: Padding
 			(
-				children:
-				[
-					CalendarDatePicker
-					(
-						initialDate: DateTime.now(),
-						firstDate: DateTime(1900),
-						lastDate: DateTime(2100),
-						onDateChanged: (DateTime day) => selectedDay = day
-					),
-
-					InkWell // This is a button
-					(
-						onTap: ()
-						{
-							setState(()
-							{
-								Navigator.push
-								(
-									context,
-									MaterialPageRoute(builder: (context) => Utils.switchPage(context, DescriptionPage(widget.restaurant, widget.location, selectedDay))),
-								);
-							});
-						},
-						child: const Padding
+				padding: const EdgeInsets.all(15.0),
+				child: Column
+				(
+					children:
+					[
+						CalendarDatePicker
 						(
-							padding: EdgeInsets.all(16.0),
-							child: Text("Next", textAlign: TextAlign.center,),
+							initialDate: DateTime.now(),
+							firstDate: DateTime(1900),
+							lastDate: DateTime(2100),
+							onDateChanged: (DateTime day) => selectedDay = day
 						),
-					),
-				],
+
+						InkWell // This is a button
+						(
+							onTap: ()
+							{
+								setState(()
+								{
+									Navigator.push
+									(
+										context,
+										MaterialPageRoute(builder: (context) => Utils.switchPage(context, DescriptionPage(widget.restaurant, widget.location, selectedDay))),
+									);
+								});
+							},
+							child: const Padding
+							(
+								padding: EdgeInsets.all(16.0),
+								child: Text("Next", textAlign: TextAlign.center,),
+							),
+						),
+					],
+				)
 			)
 		);
   	}
@@ -224,28 +341,8 @@ class DescriptionPage extends StatefulWidget
 
 class _DescriptionPageState extends State<DescriptionPage>
 {
-	@override
-	Widget build(BuildContext context)
-	{
-		return Scaffold();
-  	}
-}
-
-class PostPage extends StatefulWidget
-{
-  	const PostPage({super.key});
-
-	@override
-	State<PostPage> createState() => _PostPageState();
-}
-
-class _PostPageState extends State<PostPage>
-{
 	// The text field controllers, they need to be individual. If they shared each other then they'd have the same text
-	DateTime selectedDay = DateTime.now(); // The day that's actually selected
-	DateTime focusedDay = DateTime.now(); // The slightly faded out marked day
-	final TextEditingController restaurantController = TextEditingController();
-	final TextEditingController locationController = TextEditingController();
+	final TextEditingController titleController = TextEditingController();
 	final TextEditingController foodController = TextEditingController();
 	final TextEditingController descriptionController = TextEditingController();
 	final TextEditingController priceController = TextEditingController();
@@ -259,107 +356,126 @@ class _PostPageState extends State<PostPage>
 	void dispose()
 	{
 		// Must be disposed to avoid memory leaks
-		restaurantController.dispose();
-		locationController.dispose();
+		super.dispose();
+		titleController.dispose();
 		foodController.dispose();
 		descriptionController.dispose();
 		priceController.dispose();
 		ratingController.dispose();
-		super.dispose();
 	}
 
 	@override
 	Widget build(BuildContext context)
 	{
 		final AllPosts list = context.watch<AllPosts>();
-		
+
 		final ThemeData theme = Theme.of(context);
 		final TextStyle? textStyle = theme.textTheme.displaySmall;
-		bool fieldsAreEmpty = (restaurantController.text.trim() == "") || locationController.text.trim() == "" || (foodController.text.trim() == "") || (descriptionController.text.trim() == "") || (priceController.text.trim() == "") || (ratingController.text.trim() == ""); // Ensures that all the fields are filled before a post can be posted
 
-		return Padding
+		bool fieldsAreEmpty = (titleController.text.trim() == "") || (foodController.text.trim() == "") || (descriptionController.text.trim() == "") || (priceController.text.trim() == "") || (ratingController.text.trim() == ""); // Ensures that all the fields are filled before a post can be posted
+
+		return Scaffold
 		(
-			padding: const EdgeInsets.only(top: 15.0),
-			child: Column
+			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
+			appBar: AppBar(title: const Text("Description")),
+			body: Padding
 			(
-				children:
-				[
-					TableCalendar
-					(
-						firstDay: DateTime(1900),
-						lastDay: DateTime(2100),
-						focusedDay: focusedDay,
-						availableCalendarFormats: const {CalendarFormat.week: "Week"}, // Makes this the only format allowed
-						headerStyle: const HeaderStyle(formatButtonVisible: false), // Removes the button to change the format
-						calendarFormat: CalendarFormat.week, // Makes the format only show the days in 1 week
-						selectedDayPredicate:(day) => isSameDay(selectedDay, day), // Allows the day to actually be selected
-						onDaySelected: (sDay, fDay)
-						{
-							setState(()
-							{
-								selectedDay = sDay;
-								focusedDay = fDay;
-							});
-						},
-						onPageChanged: (day)
-						{
-							setState(()
-							{
-								focusedDay = day;
-							});
-						},
-					),
-					Text("Restaurant", style: textStyle,),
-					TextField(style: textStyle, controller: restaurantController),
-					Text("Location", style: textStyle,),
-					TextField(style: textStyle, controller: locationController),
-					Text("Food", style: textStyle,),
-					TextField(style: textStyle, controller: foodController),
-					Text("Description", style: textStyle,),
-					TextField(style: textStyle, controller: descriptionController),
-					Text("Price", style: textStyle,),
-					TextField(style: textStyle, controller: priceController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]), // Only allows 2 decimal numbers
-					Text("Rating", style: textStyle,),
-					DropdownMenu<int>
-					(
-                        controller: ratingController,
-                        label: const Text('Rating'), // The mini label on the widget
-                        dropdownMenuEntries: ratingList, // The list from 0 - 10
-                        onSelected: (int? rating)
-						{
-							setState(()
-							{
-								selectedRating = rating;
-							});
-                        },
-					),
+				padding: const EdgeInsets.all(15.0),
+				child: Column // try Stack
+				(
+					children:
+					[
+						// Restaurant
+						textBox(textStyle: textStyle, text: widget.restaurant),
 
-					ElevatedButton
-					(
-						onPressed: fieldsAreEmpty ? null : () // if the fields are empty then grey out the button
-						{
-							// list.uploadPost(newPost(selectedDay, restaurantController, locationController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
-							resetControllers(); // And make all the fields blank
-						},
-						child: const Text("Post")
-					),
-				],
-			),
+						// Location
+						textBox(textStyle: textStyle, text: widget.location),
+
+						// Title
+						textBox(textStyle: textStyle, controller: titleController),
+
+						// Food
+						textBox(textStyle: textStyle, controller: foodController),
+
+						// Photo
+						// uploadPhoto();
+
+						// Description
+						textBox(textStyle: textStyle, controller: descriptionController),
+
+						// Price
+						textBox(textStyle: textStyle, controller: priceController),
+
+						// Rating
+						textBox(textStyle: textStyle, controller: ratingController),
+
+						// Upload Button
+						ElevatedButton
+						(
+							onPressed: fieldsAreEmpty ? null : () // if the fields are empty then grey out the button
+							{
+								list.uploadPost(newPost(widget.restaurant, widget.location, widget.day, titleController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
+
+								setState(()
+								{
+									Navigator.push
+									(
+										context,
+										MaterialPageRoute(builder: (context) => Utils.switchPage(context, const FeedPage())), // After uploading, go back to the Feed page
+									);
+								});
+							},
+							child: const Padding
+							(
+								padding: EdgeInsets.all(16.0),
+								child: Text("File", textAlign: TextAlign.center,),
+							),
+						)
+					]
+				)
+			)
 		);
   	}
 
-	// Post newPost(DateTime calendar, TextEditingController restaurant, TextEditingController location, TextEditingController food, TextEditingController description, TextEditingController price, TextEditingController rating)
-	// {
-	// 	// Trims and parses all the values so that everything is uploaded properly and without any excess
-	// 	Post post = Post(calendar, restaurant.text.trim(), location.text.trim(), food.text.trim(), description.text.trim(), double.parse(price.text.trim()), int.parse(rating.text.trim()));
+	Widget textBox({TextStyle? textStyle, TextEditingController? controller, String? text})
+	{
+		return Card
+		(
+			child: Stack
+			(
+				children:
+				[
+					Text("Food", style: textStyle),
 
-	// 	return post;
+					// Might need Expanded()
+					if(controller != null)
+					TextField(style: textStyle, controller: controller),
+					if(text != null)
+					Text(text, style: textStyle),
+				],
+			),
+		);
+	}
+
+	// Im thinking like a big plus icon, but it should probably be sleeker and more compact
+	// Below code shows an image, it does not open the camera roll
+	// Widget uploadPhoto()
+	// {
+	// 	return Image.asset('assets/images/food.jpg');
 	// }
+
+	Post newPost(String restaurant, String location, DateTime calendar, TextEditingController title, TextEditingController food, TextEditingController description, TextEditingController price, TextEditingController rating)
+	{
+		// Trims and parses all the values so that everything is uploaded properly and without any excess
+		Post post = Post(restaurant.trim(), location.trim(), calendar, title.text.trim(), food.text.trim(), description.text.trim(), double.parse(price.text.trim()), int.parse(rating.text.trim()));
+
+		resetControllers(); // And make all the fields blank
+
+		return post;
+	}
 
 	void resetControllers()
 	{
-		restaurantController.clear();
-		locationController.clear();
 		foodController.clear();
 		descriptionController.clear();
 		priceController.clear();
