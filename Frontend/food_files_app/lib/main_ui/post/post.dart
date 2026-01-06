@@ -48,6 +48,8 @@ class _PostPageState extends State<PostPage>
 
 	List<DropdownMenuEntry<int>> ratingList = const [DropdownMenuEntry(value: 0, label: "0"), DropdownMenuEntry(value: 1, label: "1"), DropdownMenuEntry(value: 2, label: "2"), DropdownMenuEntry(value: 3, label: "3"), DropdownMenuEntry(value: 4, label: "4"), DropdownMenuEntry(value: 5, label: "5"), DropdownMenuEntry(value: 6, label: "6"), DropdownMenuEntry(value: 7, label: "7"), DropdownMenuEntry(value: 8, label: "8"), DropdownMenuEntry(value: 9, label: "9"), DropdownMenuEntry(value: 10, label: "10")]; // The list of numbers from 0 - 10
 
+	late AllPosts _list;
+
 	@override
 	void dispose()
 	{
@@ -61,11 +63,24 @@ class _PostPageState extends State<PostPage>
 		super.dispose();
 	}
 
+	@override void initState()
+	{
+    	super.initState();
+		final AllPosts list = context.read<AllPosts>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
+		_list = list; // Initializes the field
+
+		// On the first go, it sets all the fields to blank, but then whenever the user goes to another page, and then back here, the page will rebuild with the previous values. This is so that the fields don't keep resetting
+		restaurantController.text = _list.re;
+		locationController.text = _list.l;
+		foodController.text = _list.f;
+		descriptionController.text = _list.d;
+		priceController.text = _list.p;
+		ratingController.text = _list.ra;
+  	}
+
 	@override
 	Widget build(BuildContext context)
-	{
-		final AllPosts list = context.watch<AllPosts>();
-		
+	{	
 		final ThemeData theme = Theme.of(context);
 		final TextStyle? textStyle = theme.textTheme.displaySmall;
 		bool fieldsAreEmpty = (restaurantController.text.trim() == "") || locationController.text.trim() == "" || (foodController.text.trim() == "") || (descriptionController.text.trim() == "") || (priceController.text.trim() == "") || (ratingController.text.trim() == ""); // Ensures that all the fields are filled before a post can be posted
@@ -77,23 +92,58 @@ class _PostPageState extends State<PostPage>
 			(
 				children:
 				[
-					CalendarDatePicker
-					(
-						initialDate: DateTime.now(),
-						firstDate: DateTime(1900),
-						lastDate: DateTime(2100),
-						onDateChanged: (DateTime day) => selectedDay = day
-					),
+					// CalendarDatePicker
+					// (
+					// 	initialDate: DateTime.now(),
+					// 	firstDate: DateTime(1900),
+					// 	lastDate: DateTime(2100),
+					// 	onDateChanged: (DateTime day) => selectedDay = day
+					// ),
 					Text("Restaurant", style: textStyle,),
-					TextField(style: textStyle, controller: restaurantController),
+					TextField(style: textStyle, controller: restaurantController, onChanged: (value)
+						{
+							setState(() // Whenever the text changes, rebuild the page so that the fieldsAreEmpty bool can see the updated variables
+							{
+								_list.updateControllers(res: value);
+							});
+						}
+					),
 					Text("Location", style: textStyle,),
-					TextField(style: textStyle, controller: locationController),
+					TextField(style: textStyle, controller: locationController, onChanged: (value)
+						{
+							setState(()
+							{
+								_list.updateControllers(loc: value);
+							});
+						}
+					),
 					Text("Food", style: textStyle,),
-					TextField(style: textStyle, controller: foodController),
+					TextField(style: textStyle, controller: foodController, onChanged: (value)
+						{
+							setState(()
+							{
+								_list.updateControllers(food: value);
+							});
+						}
+					),
 					Text("Description", style: textStyle,),
-					TextField(style: textStyle, controller: descriptionController),
+					TextField(style: textStyle, controller: descriptionController, onChanged: (value)
+						{
+							setState(()
+							{
+								_list.updateControllers(desc: value);
+							});
+						}
+					),
 					Text("Price", style: textStyle,),
-					TextField(style: textStyle, controller: priceController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]), // Only allows 2 decimal numbers
+					TextField(style: textStyle, controller: priceController, onChanged: (value)
+						{
+							setState(()
+							{
+								_list.updateControllers(price: value);
+							});
+						}
+					, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))]), // Only allows 2 decimal numbers
 					Text("Rating", style: textStyle,),
 					DropdownMenu<int>
 					(
@@ -105,6 +155,7 @@ class _PostPageState extends State<PostPage>
 							setState(()
 							{
 								selectedRating = rating;
+								_list.updateControllers(rating: ratingController.text);
 							});
                         },
 					),
@@ -113,7 +164,7 @@ class _PostPageState extends State<PostPage>
 					(
 						onPressed: fieldsAreEmpty ? null : () // if the fields are empty then grey out the button
 						{
-							list.uploadPost(newPost(selectedDay, restaurantController, locationController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
+							_list.uploadPost(newPost(selectedDay, restaurantController, locationController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
 							resetControllers(); // And make all the fields blank
 						},
 						child: const Text("Post")
@@ -139,11 +190,33 @@ class _PostPageState extends State<PostPage>
 		descriptionController.clear();
 		priceController.clear();
 		ratingController.clear();
+
+		_list.updateControllers(res: restaurantController.text, loc: locationController.text, food: foodController.text, desc: descriptionController.text, price: priceController.text, rating: ratingController.text);
 	}
 }
 
 class AllPosts extends ChangeNotifier
 {
+	String re = "";
+	String l = "";
+	String f = "";
+	String d = "";
+	String p = "";
+	String ra = "";
+
+	void updateControllers({String? res, String? loc, String? food, String? desc, String? price, String? rating})
+	{
+		// If the parameter isn't null, then save the value, so that when the page rebuilds, it rebuilds with this value
+		if(res != null) re = res;
+		if(loc != null) l = loc;
+		if(food != null) f = food;
+		if(desc != null) d = desc;
+		if(price != null) p = price;
+		if(rating != null) ra = rating;
+
+		notifyListeners();
+	}
+
 	final List<Post> postsList = List.empty(growable: true); // A master list that contains every post
 	RestaurantFoldersList? _restaurantList; // The list that holds all the restaurant folders
 

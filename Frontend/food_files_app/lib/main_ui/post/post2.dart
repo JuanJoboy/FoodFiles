@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:food_files_app/main.dart';
 import 'package:food_files_app/main_ui/feed/feed.dart';
 import 'package:food_files_app/main_ui/profile/folders/location_folder.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
@@ -66,14 +68,17 @@ class _MapPageState extends State<MapPage>
 				return;
 			}
 
-			await geo.Geolocator.getCurrentPosition().then((position)
+			geo.Geolocator.getCurrentPosition().then((position)
 			{
-				setState(() // Forces a rebuild of the ui and sets the permission
+				if(mounted)
 				{
-					_permissionGranted = true;
-					_userPosition = position;
-					flyCameraTo(_userPosition.longitude, _userPosition.latitude);
-				});
+					setState(() // Forces a rebuild of the ui and sets the permission
+					{
+						_permissionGranted = true;
+						_userPosition = position;
+						flyCameraTo(_userPosition.longitude, _userPosition.latitude);
+					});
+				}
 			}); // Do the method call outside the setState so that i dont have to make it async, and also so that I can set the users position within the set state.
 		}
 		else if(status.isPermanentlyDenied)
@@ -113,7 +118,7 @@ class _MapPageState extends State<MapPage>
 				children:
 				[
 					map(context, longitude, latitude, restaurant, location), // Show the map
-					searchBar(), // Show the search bar
+					searchBar(), // Show the search bar. This is called second and not first, because the map would cover it
 				],
 			)
 		);
@@ -223,7 +228,7 @@ class _MapPageState extends State<MapPage>
 
 	Future<(double, double)> getInfoFromSearch(String search) async
 	{
-		var response = await _geoCoding.getPlaces(search);
+		dynamic response = await _geoCoding.getPlaces(search);
 		
 		double longitude = 0;
 		double latitude = 0;
@@ -245,14 +250,13 @@ class _MapPageState extends State<MapPage>
 
 	Future<(String, String)> getInfoFromTap(double longitude, double latitude) async
 	{
-		var response = await _geoCoding.getAddress((long: longitude, lat: latitude));
+		dynamic response = await _geoCoding.getAddress((long: longitude, lat: latitude));
 
 		if(response.success != null)
 		{
 			if(response.success!.isNotEmpty) // If tap was successful
 			{
 				MapBoxPlace place = response.success!.first; // Get the place that was tapped on
-				
 				// If the place is somehow null, return unknown
 				restaurant = place.text ?? restaurant;
 				location = place.placeName ?? location;
@@ -370,6 +374,8 @@ class _DescriptionPageState extends State<DescriptionPage>
 
 	List<DropdownMenuEntry<int>> ratingList = const [DropdownMenuEntry(value: 0, label: "0"), DropdownMenuEntry(value: 1, label: "1"), DropdownMenuEntry(value: 2, label: "2"), DropdownMenuEntry(value: 3, label: "3"), DropdownMenuEntry(value: 4, label: "4"), DropdownMenuEntry(value: 5, label: "5"), DropdownMenuEntry(value: 6, label: "6"), DropdownMenuEntry(value: 7, label: "7"), DropdownMenuEntry(value: 8, label: "8"), DropdownMenuEntry(value: 9, label: "9"), DropdownMenuEntry(value: 10, label: "10")]; // The list of numbers from 0 - 10
 
+	late AllPosts _list;
+
 	@override
 	void dispose()
 	{
@@ -382,11 +388,23 @@ class _DescriptionPageState extends State<DescriptionPage>
 		ratingController.dispose();
 	}
 
+	@override void initState()
+	{
+    	super.initState();
+		final AllPosts list = context.read<AllPosts>(); // Since there's no context available here, I just read, rather than making and adding the widget to the tree
+		_list = list; // Initializes the field
+
+		// On the first go, it sets all the fields to blank, but then whenever the user goes to another page, and then back here, the page will rebuild with the previous values. This is so that the fields don't keep resetting
+		titleController.text = _list.t;
+		foodController.text = _list.f;
+		descriptionController.text = _list.d;
+		priceController.text = _list.p;
+		ratingController.text = _list.r;
+  	}
+
 	@override
 	Widget build(BuildContext context)
 	{
-		final AllPosts list = context.watch<AllPosts>();
-
 		final ThemeData theme = Theme.of(context);
 		final TextStyle? textStyle = theme.textTheme.displaySmall;
 
@@ -404,73 +422,121 @@ class _DescriptionPageState extends State<DescriptionPage>
 					children:
 					[
 						// Restaurant
-						textBox(textStyle: textStyle, text: widget.restaurant),
+						immutableTextField("Restaurant", widget.restaurant, textStyle: textStyle),
 
 						// Location
-						textBox(textStyle: textStyle, text: widget.location),
+						immutableTextField("Location", widget.location, textStyle: textStyle),
 
 						// Title
-						textBox(textStyle: textStyle, controller: titleController),
+						textBox("Title", titleController, textStyle: textStyle, fieldToSave: 1),
 
 						// Food
-						textBox(textStyle: textStyle, controller: foodController),
+						textBox("Food", foodController, textStyle: textStyle, fieldToSave: 2),
 
 						// Photo
 						// uploadPhoto();
 
 						// Description
-						textBox(textStyle: textStyle, controller: descriptionController),
+						textBox("Description", descriptionController, textStyle: textStyle, fieldToSave: 3),
 
 						// Price
-						textBox(textStyle: textStyle, controller: priceController),
+						textBox("Price", priceController, textStyle: textStyle, fieldToSave: 4, priceField: true),
 
 						// Rating
-						textBox(textStyle: textStyle, controller: ratingController),
+						ratingDropdown(),
 
 						// Upload Button
-						ElevatedButton
-						(
-							onPressed: fieldsAreEmpty ? null : () // if the fields are empty then grey out the button
-							{
-								list.uploadPost(newPost(widget.restaurant, widget.location, widget.day, titleController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
-
-								setState(()
-								{
-									Navigator.push
-									(
-										context,
-										MaterialPageRoute(builder: (context) => Utils.switchPage(context, const FeedPage())), // After uploading, go back to the Feed page
-									);
-								});
-							},
-							child: const Padding
-							(
-								padding: EdgeInsets.all(16.0),
-								child: Text("File", textAlign: TextAlign.center,),
-							),
-						)
+						upload(fieldsAreEmpty),
 					]
 				)
 			)
 		);
   	}
 
-	Widget textBox({TextStyle? textStyle, TextEditingController? controller, String? text})
+	Widget immutableTextField(String fieldName, String text, {TextStyle? textStyle})
 	{
 		return Card
 		(
-			child: Stack
+			child: Column
 			(
 				children:
 				[
-					Text("Food", style: textStyle),
-
-					// Might need Expanded()
-					if(controller != null)
-					TextField(style: textStyle, controller: controller),
-					if(text != null)
+					Text(fieldName, style: textStyle),
 					Text(text, style: textStyle),
 				],
+			),
+		);
+	}
+
+	Widget textBox(String fieldName, TextEditingController controller, {TextStyle? textStyle, bool? priceField, int? fieldToSave})
+	{
+		return Card
+		(
+			child: Column
+			(
+				children:
+				[
+					Text(fieldName, style: textStyle),
+
+					TextField
+					(
+						style: textStyle,
+						controller: controller,
+						onChanged: (value)
+						{
+							setState(()
+							{
+								switch(fieldToSave)
+								{
+									case 1: _list.updateControllers(title: value);
+									case 2: _list.updateControllers(food: value);
+									case 3: _list.updateControllers(desc: value);
+									case 4: _list.updateControllers(price: value);
+								}
+							});
+						},
+						inputFormatters: priceField == true ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))] : null
+					),
+				],
+			),
+		);
+	}
+
+	Widget ratingDropdown()
+	{
+		return DropdownMenu<int>
+		(
+			controller: ratingController,
+			label: const Text('Rating'), // The mini label on the widget
+			dropdownMenuEntries: ratingList, // The list from 0 - 10
+			onSelected: (int? rating)
+			{
+				setState(()
+				{
+					selectedRating = rating;
+					_list.updateControllers(rating: ratingController.text);
+				});
+			},
+		);
+	}
+
+	Widget upload(bool fieldsAreEmpty)
+	{
+		return ElevatedButton
+		(
+			onPressed: fieldsAreEmpty ? null : () // if the fields are empty then grey out the button
+			{
+				_list.uploadPost(newPost(widget.restaurant, widget.location, widget.day, titleController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
+
+				setState(()
+				{
+					Navigator.popUntil(context, (route) => route.isFirst); // Goes back until it reaches the first page created (the home page)
+				});
+			},
+			child: const Padding
+			(
+				padding: EdgeInsets.all(16.0),
+				child: Text("Post", textAlign: TextAlign.center,),
 			),
 		);
 	}
@@ -494,15 +560,36 @@ class _DescriptionPageState extends State<DescriptionPage>
 
 	void resetControllers()
 	{
+		titleController.clear();
 		foodController.clear();
 		descriptionController.clear();
 		priceController.clear();
 		ratingController.clear();
+
+		_list.updateControllers(title: titleController.text, food: foodController.text, desc: descriptionController.text, price: priceController.text, rating: ratingController.text);
 	}
 }
 
 class AllPosts extends ChangeNotifier
 {
+	String t = "";
+	String f = "";
+	String d = "";
+	String p = "";
+	String r = "";
+
+	void updateControllers({String? title, String? food, String? desc, String? price, String? rating})
+	{
+		// If the parameter isn't null, then save the value, so that when the page rebuilds, it rebuilds with this value
+		if(title != null) t = title;
+		if(food != null) f = food;
+		if(desc != null) d = desc;
+		if(price != null) p = price;
+		if(rating != null) r = rating;
+
+		notifyListeners();
+	}
+
 	final List<Post> postsList = List.empty(growable: true); // A master list that contains every post
 	RestaurantFoldersList? _restaurantList; // The list that holds all the restaurant folders
 
