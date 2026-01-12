@@ -39,6 +39,7 @@ dependencies:
   geolocator: ^14.0.2
   mapbox_search: ^4.4.0
   permission_handler: ^12.0.1
+  sunrise_sunset_api: ^1.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -22,7 +22,7 @@ class Utils
 		}
 	}
 
-	static Color? getColor(int? rating, ThemeData theme)
+	static Color? getColor(double? rating, ThemeData theme)
 	{
 		final bool lightMode = theme.brightness == Brightness.light;
 
@@ -54,6 +54,11 @@ class Utils
 	{
 		// If the mode is light, then return surfaceContainerLow, else return blueGrey if its dark mode
 		return theme.brightness == Brightness.light ? theme.colorScheme.surfaceContainerLow : Colors.blueGrey;
+	}
+
+	static bool backgroundColorIsLightMode(ThemeData theme)
+	{
+		return theme.brightness == Brightness.light ? true : false;
 	}
 
 	static ColoredBox switchPage(BuildContext context, Widget nextPage)

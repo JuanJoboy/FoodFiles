@@ -102,7 +102,7 @@ class PostWidget extends StatelessWidget
 		final String food = list[index].food;
 		final String description = list[index].description;
 		final double price = list[index].price;
-		final int rating = list[index].rating;
+		final double rating = list[index].rating;
 
 		double deviceWidth = MediaQuery.of(context).size.width;
 		double extraPadding = 40; // Needed to make the break line between each post look symmetrical
@@ -144,7 +144,7 @@ class PostWidget extends StatelessWidget
 						displayImage(context, Icons.account_circle, 55, const Color.fromARGB(255, 0, 0, 0), topDistance: 0 + extraPadding, leftDistance: deviceWidth * 0.75, rightDistance: 20),
 						
 						// Description + Image
-						carouselScroller(lightCardColor, description, textStyle, lightMode, rating, theme),
+						carouselScroller(lightCardColor, description, textStyle, lightMode, theme),
 
 						// Like
 						displayImage2(context, Icons.thumb_up_rounded, 40, mediumCardColor, const Color.fromARGB(255, 255, 255, 255), topDistance: topDistanceForBottomRow + extraPadding, leftDistance: deviceWidth * 0.1, rightDistance: deviceWidth * 0.75),
@@ -175,7 +175,7 @@ class PostWidget extends StatelessWidget
 		return price;
 	}
 
-	Widget displayText(BuildContext context, ThemeData theme, TextStyle? textStyle, String text, int lines, FontWeight weight, double size, CrossAxisAlignment alignmentDirection, double paddingSize, Color cardColor, {double? topDistance, double? bottomDistance, double? leftDistance, double? rightDistance, double? elevation, bool? roundedEdge, int? rating})
+	Widget displayText(BuildContext context, ThemeData theme, TextStyle? textStyle, String text, int lines, FontWeight weight, double size, CrossAxisAlignment alignmentDirection, double paddingSize, Color cardColor, {double? topDistance, double? bottomDistance, double? leftDistance, double? rightDistance, double? elevation, bool? roundedEdge, double? rating})
 	{
 		return Positioned
 		(
@@ -204,7 +204,7 @@ class PostWidget extends StatelessWidget
 		);
 	}
 
-	Widget carouselScroller(Color lightCardColor, String description, TextStyle? textStyle, bool lightMode, int rating, ThemeData theme)
+	Widget carouselScroller(Color lightCardColor, String description, TextStyle? textStyle, bool lightMode, ThemeData theme)
 	{
 		return Positioned
 		(

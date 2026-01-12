@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:food_files_app/main.dart';
-import 'package:food_files_app/main_ui/feed/feed.dart';
 import 'package:food_files_app/main_ui/profile/folders/location_folder.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
 import 'package:food_files_app/utilities/utilities.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mapbox_search/models/location.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:mapbox_search/mapbox_search.dart';
-
+import 'package:sunrise_sunset_api/src/sunrise_sunset_response.dart';
+import 'package:sunrise_sunset_api/sunrise_sunset_api.dart';
 class Post
 {
 	// pfp
@@ -28,7 +28,7 @@ class Post
 	final double price;
 	// final bool discounted = false;
 	// final double originalPrice;
-	final int rating;
+	final double rating;
 
 	Post(this.restaurant, this.location, this.date, this.postTitle, this.food, this.description, this.price, this.rating);
 }
@@ -46,11 +46,12 @@ class _MapPageState extends State<MapPage>
 	bool _permissionGranted = false;
 	late geo.Position _userPosition;
 	late MapboxMap _mapboxMap;
+	late StyleLoadedEventData _styleData;
 	String restaurant = "Unknown Restaurant";
 	String location = "Unknown Location";
 
 	static const String _key = String.fromEnvironment("ACCESS_TOKEN");
-	GeoCodingApi _geoCoding = GeoCodingApi(apiKey: _key, limit: 1);
+	GeoCodingApi _geoCoding = GeoCodingApi(apiKey: _key, limit: null, types: [PlaceType.poi, PlaceType.place, PlaceType.neighborhood, PlaceType.address, PlaceType.locality]);
 	
 	Future<void> requestLocationPermission() async
 	{
@@ -76,7 +77,8 @@ class _MapPageState extends State<MapPage>
 					{
 						_permissionGranted = true;
 						_userPosition = position;
-						flyCameraTo(_userPosition.longitude, _userPosition.latitude);
+
+						updateMapLighting(_userPosition.longitude, _userPosition.latitude).then((_) => flyCameraTo(_userPosition.longitude, _userPosition.latitude));
 					});
 				}
 			}); // Do the method call outside the setState so that i dont have to make it async, and also so that I can set the users position within the set state.
@@ -87,10 +89,41 @@ class _MapPageState extends State<MapPage>
 		}
 	}
 
+	Future<void> updateMapLighting(double longitude, double latitude) async
+	{
+		SunriseSunsetResponse? response = await SunriseSunset.getResults(date: DateTime.now(), latitude: latitude, longitude: longitude);
+
+		String value = "dusk";
+
+		if(response != null)
+		{
+			if(DateTime.now().isAfter(response.data!.civilTwilightBegin) && DateTime.now().isBefore(response.data!.sunrise))
+			{
+				value = "dawn";
+			}
+			else if(DateTime.now().isAfter(response.data!.sunrise) && DateTime.now().isBefore(response.data!.sunset))
+			{
+				value = "day";
+			}
+			else if(DateTime.now().isAfter(response.data!.sunset) && DateTime.now().isBefore(response.data!.civilTwilightEnd))
+			{
+				value = "dusk";
+			}
+			else
+			{
+				value = "night";
+			}
+		}
+		
+		_mapboxMap.style.setStyleImportConfigProperty("basemap", "lightPreset", value);
+	}
+
+	// TODO: Find a way to save the map permissions and state so that it doesnt build itself everytime you exit and go back to it
 	@override
 	void initState() // This is the standard place to start asynchronous tasks when a page loads. While initState itself is synchronous, it can call an async function. It will fire the request and then immediately move on to the build() method without waiting for the user to click "Allow."
 	{
 		super.initState();
+		MapboxOptions.setAccessToken(_key);
 
 		WidgetsBinding.instance.addPostFrameCallback((timeStamp) async => await requestLocationPermission());
 	}
@@ -149,7 +182,7 @@ class _MapPageState extends State<MapPage>
 						onSubmitted: (value)
 						{
 							// controller.closeView(value);
-							getInfoFromSearch(value).then((info) => flyCameraTo(info.$1, info.$2));
+							getInfoFromSearch(value).then((info) => flyCameraTo(info.$1, info.$2, zoom: 18));
 						},
 						onTapOutside: (event)
 						{
@@ -197,38 +230,45 @@ class _MapPageState extends State<MapPage>
 				}
 			},
 
-			onTapListener: (mapContext) // Cant use async here since, the map engine triggers the tap event and moves on immediately to keep the map responsive (60fps). It doesn't want to "wait" for a network request to finish before allowing the user to zoom or scroll again.
+			onStyleLoadedListener: (data)
 			{
-				double long = mapContext.point.coordinates.lng.toDouble();
-				double lat = mapContext.point.coordinates.lat.toDouble();
+				_styleData = data;
+				_mapboxMap.style.setStyleImportConfigProperty("basemap", "lightPreset", "day");
+				_mapboxMap.style.setStyleImportConfigProperty("basemap", "showPointOfInterestLabels", true);
 
-				getInfoFromTap(long, lat).then((info) // Since the method isn't async, I use .then() to do the rest of the functionality
-				{
-					setState(()
+				final poiIconTapInteraction = TapInteraction
+				(
+					FeaturesetDescriptor(featuresetId: "poi", importId: "basemap"), (poiIcon, tapContext)
 					{
-						restaurant = info.$1;
-						location = info.$2;
+						// poiIcon features = {group: poi, class: food_and_drink, maki: restaurant, name: Took Bae Kee}
+						restaurant = (poiIcon.properties["name"] ?? poiIcon.properties["name_en"] ?? restaurant) as String;
 
-						if(mounted) // Needed cause BuildContext doesn't like to go through between async methods
+						final lng = tapContext.point.coordinates.lng.toDouble();
+						final lat = tapContext.point.coordinates.lat.toDouble();
+						flyCameraTo(lng, lat, zoom: 18, duration: 1000);
+
+						getInfoFromTap(lng, lat).then((location) // Since the method isn't async, I use .then() to do the rest of the functionality
 						{
-							setState(()
+							if(mounted) // Needed cause BuildContext doesn't like to go through between async methods
 							{
 								Navigator.push
 								(
 									context,
 									MaterialPageRoute(builder: (context) => Utils.switchPage(context, CalendarPage(restaurant, location))), // Also the method shouldn't be async, otherwise this method wouldn't play nice. And it should only happen after restaurant and location have actually been found. Otherwise it can move on when the async stuff hasn't finished yet
 								);
-							});
-						}
-					});
-				});
+							}
+						});
+					}
+				);
+
+				_mapboxMap.addInteraction(poiIconTapInteraction);
 			},
 		);
 	}
 
 	Future<(double, double)> getInfoFromSearch(String search) async
 	{
-		dynamic response = await _geoCoding.getPlaces(search);
+		var response = await _geoCoding.getPlaces(search, proximity: LocationProximity(loc: (lat: _userPosition.latitude, long: _userPosition.longitude)));
 		
 		double longitude = 0;
 		double latitude = 0;
@@ -239,6 +279,19 @@ class _MapPageState extends State<MapPage>
 			{
 				MapBoxPlace place = response.success!.first; // Gets the first place in the list of places that was found from the search query
 
+				print("""
+					--- MAPBOX PLACE DATA ---
+					ID: ${place.id}
+					Text (Specific Name): ${place.text}
+					Place Name (Full Address): ${place.placeName}
+					Types: ${place.placeType}
+					Address Number: ${place.addressNumber}
+					Address/Street: ${place.address}
+					Properties: ${place.properties?.toString()}
+					Matching Text: ${place.matchingText}
+					-------------------------
+				""");
+
 				// If the place was null, return 0 as the coordinates
 				longitude = place.geometry?.coordinates.long ?? longitude;
 				latitude = place.geometry?.coordinates.lat ?? latitude;
@@ -248,38 +301,52 @@ class _MapPageState extends State<MapPage>
 		return (longitude, latitude);
 	}
 
-	Future<(String, String)> getInfoFromTap(double longitude, double latitude) async
+	Future<String> getInfoFromTap(double longitude, double latitude) async
 	{
-		dynamic response = await _geoCoding.getAddress((long: longitude, lat: latitude));
+		var response = await _geoCoding.getAddress((long: longitude, lat: latitude));
 
 		if(response.success != null)
 		{
 			if(response.success!.isNotEmpty) // If tap was successful
 			{
-				MapBoxPlace place = response.success!.first; // Get the place that was tapped on
-				// If the place is somehow null, return unknown
-				restaurant = place.text ?? restaurant;
-				location = place.placeName ?? location;
+				MapBoxPlace place = response.success!.first; // Get the first result from the tap
+
+				print("""
+					--- MAPBOX PLACE DATA ---
+					ID: ${place.id}
+					Text (Specific Name): ${place.text}
+					Place Name (Full Address): ${place.placeName}
+					Types: ${place.placeType}
+					Address Number: ${place.addressNumber}
+					Address/Street: ${place.address}
+					Properties: ${place.properties?.toString()}
+					Matching Text: ${place.matchingText}
+					-------------------------
+				""");
+
+				List<String> fullPlaceNameList = place.placeName!.split(","); // Gateways Shopping Centre North Access, Success Western Australia 6164, Australia
+				String suburb = fullPlaceNameList[1]; // Splits it so that I just get Success Western Australia 6164
+				location = suburb;
 			}
 		}
 
-		return (restaurant, location); // Return both strings together
+		return location;
 	}
 
-	void flyCameraTo(double longitude, double latitude, {double? zoom})
+	void flyCameraTo(double longitude, double latitude, {double? zoom, int? duration})
 	{
 		_mapboxMap.flyTo
 		(
 			CameraOptions
 			(
 				center: Point(coordinates: Position(longitude, latitude)),
-				zoom: zoom ?? 12,
-				bearing: 0,
-				pitch: 0,
+				zoom: zoom ?? 16,
+				bearing: -0,
+				pitch: 60,
 			),
 			MapAnimationOptions
 			(
-				duration: 4000, // Already in milliseconds (1000 = 1 second)
+				duration: duration ?? 4000, // Already in milliseconds (1000 = 1 second)
 				startDelay: 0
 			)
 		);
@@ -327,14 +394,11 @@ class _CalendarPageState extends State<CalendarPage>
 						(
 							onTap: ()
 							{
-								setState(()
-								{
-									Navigator.push
-									(
-										context,
-										MaterialPageRoute(builder: (context) => Utils.switchPage(context, DescriptionPage(widget.restaurant, widget.location, selectedDay))),
-									);
-								});
+								Navigator.push
+								(
+									context,
+									MaterialPageRoute(builder: (context) => Utils.switchPage(context, DescriptionPage(widget.restaurant, widget.location, selectedDay))),
+								);
 							},
 							child: const Padding
 							(
@@ -370,9 +434,9 @@ class _DescriptionPageState extends State<DescriptionPage>
 	final TextEditingController priceController = TextEditingController();
 	final TextEditingController ratingController = TextEditingController();
 
-	int? selectedRating = 5; // Just nice to auto place in the middle. And also i think its needed to set the actual rating
+	double? selectedRating = 5; // Just nice to auto place in the middle. And also i think its needed to set the actual rating
 
-	List<DropdownMenuEntry<int>> ratingList = const [DropdownMenuEntry(value: 0, label: "0"), DropdownMenuEntry(value: 1, label: "1"), DropdownMenuEntry(value: 2, label: "2"), DropdownMenuEntry(value: 3, label: "3"), DropdownMenuEntry(value: 4, label: "4"), DropdownMenuEntry(value: 5, label: "5"), DropdownMenuEntry(value: 6, label: "6"), DropdownMenuEntry(value: 7, label: "7"), DropdownMenuEntry(value: 8, label: "8"), DropdownMenuEntry(value: 9, label: "9"), DropdownMenuEntry(value: 10, label: "10")]; // The list of numbers from 0 - 10
+	List<DropdownMenuEntry<double>> ratingList = [for(int i = 0; i <= 100; i++) DropdownMenuEntry(value: i / 10, label: (i / 10).toStringAsFixed(1))]; // Ensures that i dont get any rounding weirdness like 4.99999
 
 	late AllPosts _list;
 
@@ -407,8 +471,6 @@ class _DescriptionPageState extends State<DescriptionPage>
 	{
 		final ThemeData theme = Theme.of(context);
 		final TextStyle? textStyle = theme.textTheme.displaySmall;
-
-		bool fieldsAreEmpty = (titleController.text.trim() == "") || (foodController.text.trim() == "") || (descriptionController.text.trim() == "") || (priceController.text.trim() == "") || (ratingController.text.trim() == ""); // Ensures that all the fields are filled before a post can be posted
 
 		return Scaffold
 		(
@@ -446,7 +508,7 @@ class _DescriptionPageState extends State<DescriptionPage>
 						ratingDropdown(),
 
 						// Upload Button
-						upload(fieldsAreEmpty),
+						upload(),
 					]
 				)
 			)
@@ -484,16 +546,14 @@ class _DescriptionPageState extends State<DescriptionPage>
 						controller: controller,
 						onChanged: (value)
 						{
-							setState(()
+							// setState() isn't needed here because it's straight up not needed when saving the controllers text, and in regards to the upload condition, the upload button is wrapped in a listenable that does the work for us
+							switch(fieldToSave)
 							{
-								switch(fieldToSave)
-								{
-									case 1: _list.updateControllers(title: value);
-									case 2: _list.updateControllers(food: value);
-									case 3: _list.updateControllers(desc: value);
-									case 4: _list.updateControllers(price: value);
-								}
-							});
+								case 1: _list.updateControllers(title: value);
+								case 2: _list.updateControllers(food: value);
+								case 3: _list.updateControllers(desc: value);
+								case 4: _list.updateControllers(price: value);
+							}
 						},
 						inputFormatters: priceField == true ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}$'))] : null
 					),
@@ -504,40 +564,41 @@ class _DescriptionPageState extends State<DescriptionPage>
 
 	Widget ratingDropdown()
 	{
-		return DropdownMenu<int>
+		return DropdownMenu<double>
 		(
 			controller: ratingController,
 			label: const Text('Rating'), // The mini label on the widget
 			dropdownMenuEntries: ratingList, // The list from 0 - 10
-			onSelected: (int? rating)
+			onSelected: (double? rating)
 			{
-				setState(()
-				{
-					selectedRating = rating;
-					_list.updateControllers(rating: ratingController.text);
-				});
+				selectedRating = rating;
+				_list.updateControllers(rating: ratingController.text);
 			},
 		);
 	}
 
-	Widget upload(bool fieldsAreEmpty)
+	Widget upload()
 	{
-		return ElevatedButton
+		return ListenableBuilder
 		(
-			onPressed: fieldsAreEmpty ? null : () // if the fields are empty then grey out the button
+			listenable: Listenable.merge([titleController, foodController, descriptionController, priceController, ratingController]), // Combines all the controllers together to say "Track all these guys's changes"
+			builder: (context, child)
 			{
-				_list.uploadPost(newPost(widget.restaurant, widget.location, widget.day, titleController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
+				return ElevatedButton
+				(
+					onPressed: areFieldsEmpty() ? null : () // if the fields are empty then grey out the button
+					{
+						_list.uploadPost(newPost(widget.restaurant, widget.location, widget.day, titleController, foodController, descriptionController, priceController, ratingController)); // If every field is filled in, upload the post
 
-				setState(()
-				{
-					Navigator.popUntil(context, (route) => route.isFirst); // Goes back until it reaches the first page created (the home page)
-				});
+						Navigator.popUntil(context, (route) => route.isFirst); // Goes back until it reaches the first page created (the home page)
+					},
+					child: const Padding
+					(
+						padding: EdgeInsets.all(16.0),
+						child: Text("Post", textAlign: TextAlign.center,),
+					),
+				);
 			},
-			child: const Padding
-			(
-				padding: EdgeInsets.all(16.0),
-				child: Text("Post", textAlign: TextAlign.center,),
-			),
 		);
 	}
 
@@ -551,7 +612,7 @@ class _DescriptionPageState extends State<DescriptionPage>
 	Post newPost(String restaurant, String location, DateTime calendar, TextEditingController title, TextEditingController food, TextEditingController description, TextEditingController price, TextEditingController rating)
 	{
 		// Trims and parses all the values so that everything is uploaded properly and without any excess
-		Post post = Post(restaurant.trim(), location.trim(), calendar, title.text.trim(), food.text.trim(), description.text.trim(), double.parse(price.text.trim()), int.parse(rating.text.trim()));
+		Post post = Post(restaurant.trim(), location.trim(), calendar, title.text.trim(), food.text.trim(), description.text.trim(), double.parse(price.text.trim()), double.parse(rating.text.trim()));
 
 		resetControllers(); // And make all the fields blank
 
@@ -567,6 +628,11 @@ class _DescriptionPageState extends State<DescriptionPage>
 		ratingController.clear();
 
 		_list.updateControllers(title: titleController.text, food: foodController.text, desc: descriptionController.text, price: priceController.text, rating: ratingController.text);
+	}
+
+	bool areFieldsEmpty()
+	{
+		return (titleController.text.trim().isEmpty) || (foodController.text.trim().isEmpty) || (descriptionController.text.trim().isEmpty) || (priceController.text.trim().isEmpty) || (ratingController.text.trim().isEmpty); // Ensures that all the fields are filled before a post can be posted
 	}
 }
 
@@ -586,8 +652,6 @@ class AllPosts extends ChangeNotifier
 		if(desc != null) d = desc;
 		if(price != null) p = price;
 		if(rating != null) r = rating;
-
-		notifyListeners();
 	}
 
 	final List<Post> postsList = List.empty(growable: true); // A master list that contains every post
