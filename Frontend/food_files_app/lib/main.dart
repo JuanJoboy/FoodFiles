@@ -10,9 +10,10 @@ import "package:food_files_app/utilities/utilities.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
 
+// TODO: Add try-catches everywhere
 void main()
 {
-	// Map Box stuff
+	// Map Box and camera stuff
 	WidgetsFlutterBinding.ensureInitialized();
 
 	runApp
