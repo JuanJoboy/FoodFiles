@@ -441,6 +441,8 @@ class _DescriptionPageState extends State<DescriptionPage>
 
 	List<DropdownMenuEntry<double>> ratingList = [for(int i = 0; i <= 100; i++) DropdownMenuEntry(value: i / 10, label: (i / 10).toStringAsFixed(1))]; // Ensures that i dont get any rounding weirdness like 4.99999
 
+	String? imagePath = null;
+
 	late AllPosts _list;
 
 	@override
@@ -498,8 +500,11 @@ class _DescriptionPageState extends State<DescriptionPage>
 						// Food
 						textBox("Food", foodController, textStyle: textStyle, fieldToSave: 2),
 
-						// Photo
+						// Take Photo
 						takePhoto(),
+
+						// Display Photo
+						displayPhoto(),
 
 						// Description
 						textBox("Description", descriptionController, textStyle: textStyle, fieldToSave: 3),
@@ -569,13 +574,18 @@ class _DescriptionPageState extends State<DescriptionPage>
 	{
 		return InkWell
 		(
-			onTap: ()
+			onTap: () async
 			{
-				Navigator.push
+				final String returnedPath = await Navigator.push
 				(
 					context,
-					MaterialPageRoute(builder: (context) => const TakePictureScreen()),
+					MaterialPageRoute(builder: (context) => const TakePictureScreen())
 				);
+
+				setState(()
+				{
+					imagePath = returnedPath;
+				});
 			},
 			child: const Padding
 			(
@@ -583,6 +593,18 @@ class _DescriptionPageState extends State<DescriptionPage>
 				child: Icon(Icons.camera_alt_outlined)
 			),
 		);
+	}
+
+	Widget displayPhoto()
+	{
+		if(imagePath != null)
+		{
+			return Image.file(File(imagePath!));
+		}
+		else
+		{
+			return Icon(Icons.local_pizza);
+		}
 	}
 
 	Widget ratingDropdown()
@@ -671,7 +693,7 @@ class TakePictureScreen extends StatefulWidget
 class TakePictureScreenState extends State<TakePictureScreen>
 {
 	late CameraController _controller;
-	late Future<void> _initializeControllerFuture;
+	Future<void>? _initializeControllerFuture; // Instead of making it a late variable, just make it a nullable future<void> so that it can handle being null
 	bool _permissionGranted = false;
 
 	Future<void> requestCameraPermission() async
@@ -719,7 +741,11 @@ class TakePictureScreenState extends State<TakePictureScreen>
 	@override
 	void dispose()
 	{
-		_controller.dispose();
+		if(_permissionGranted)
+		{
+			_controller.dispose();
+		}
+
 		super.dispose();
 	}
 
@@ -746,6 +772,7 @@ class TakePictureScreenState extends State<TakePictureScreen>
 					}
 				},
 			),
+			
       		floatingActionButton: FloatingActionButton
 			(
         		onPressed: () async
@@ -795,7 +822,27 @@ class DisplayPictureScreen extends StatelessWidget
 		return Scaffold
 		(
 			appBar: AppBar(),
-			body: Image.file(File(imagePath)), // The image is stored as a file on the device. Use the `Image.file` constructor with the given path to display the image.
+			body: Column
+			(
+				children:
+				[
+					Image.file(File(imagePath)), // The image is stored as a file on the device. Use the `Image.file` constructor with the given path to display the image.
+
+					InkWell
+					(
+						onTap: ()
+						{
+							Navigator.pop(context, imagePath);
+							Navigator.pop(context, imagePath);
+						},
+						child: const Padding
+						(
+							padding: EdgeInsets.all(16.0),
+							child: Text("Next", textAlign: TextAlign.center,),
+						),
+					),
+				],
+			)
 		);
 	}
 }
