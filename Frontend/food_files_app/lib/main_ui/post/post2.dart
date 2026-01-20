@@ -24,7 +24,7 @@ class Post
 	final String postTitle;
 	final String food;
 	final String description;
-	// image
+	final String? image;
 	// final int likes = 0;
 	// comment
 	final double price;
@@ -32,7 +32,7 @@ class Post
 	// final double originalPrice;
 	final double rating;
 
-	Post(this.restaurant, this.location, this.date, this.postTitle, this.food, this.description, this.price, this.rating);
+	Post(this.restaurant, this.location, this.date, this.postTitle, this.food, this.description, this.image, this.price, this.rating);
 }
 
 class MapPage extends StatefulWidget
@@ -531,8 +531,8 @@ class _DescriptionPageState extends State<DescriptionPage>
 			(
 				children:
 				[
-					Text(fieldName, style: textStyle),
-					Text(text, style: textStyle),
+					Text(fieldName, style: textStyle?.copyWith(fontSize: 20)),
+					Text(text, style: textStyle?.copyWith(fontSize: 20)),
 				],
 			),
 		);
@@ -546,11 +546,11 @@ class _DescriptionPageState extends State<DescriptionPage>
 			(
 				children:
 				[
-					Text(fieldName, style: textStyle),
+					Text(fieldName, style: textStyle?.copyWith(fontSize: 20)),
 
 					TextField
 					(
-						style: textStyle,
+						style: textStyle?.copyWith(fontSize: 20),
 						controller: controller,
 						onChanged: (value)
 						{
@@ -576,7 +576,7 @@ class _DescriptionPageState extends State<DescriptionPage>
 		(
 			onTap: () async
 			{
-				final String returnedPath = await Navigator.push
+				final String? returnedPath = await Navigator.push
 				(
 					context,
 					MaterialPageRoute(builder: (context) => const TakePictureScreen())
@@ -599,7 +599,15 @@ class _DescriptionPageState extends State<DescriptionPage>
 	{
 		if(imagePath != null)
 		{
-			return Image.file(File(imagePath!));
+			return Image.file
+			(
+				File(imagePath!),
+				width: 200,
+				height: 200,
+				fit: BoxFit.cover,
+				cacheWidth: 400, // Memory optimization
+				errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+			);
 		}
 		else
 		{
@@ -657,7 +665,7 @@ class _DescriptionPageState extends State<DescriptionPage>
 	Post newPost(String restaurant, String location, DateTime calendar, TextEditingController title, TextEditingController food, TextEditingController description, TextEditingController price, TextEditingController rating)
 	{
 		// Trims and parses all the values so that everything is uploaded properly and without any excess
-		Post post = Post(restaurant.trim(), location.trim(), calendar, title.text.trim(), food.text.trim(), description.text.trim(), double.parse(price.text.trim()), double.parse(rating.text.trim()));
+		Post post = Post(restaurant.trim(), location.trim(), calendar, title.text.trim(), food.text.trim(), description.text.trim(), imagePath?.trim(), double.parse(price.text.trim()), double.parse(rating.text.trim()));
 
 		resetControllers(); // And make all the fields blank
 

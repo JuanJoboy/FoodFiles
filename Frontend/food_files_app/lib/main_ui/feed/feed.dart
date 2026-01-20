@@ -97,10 +97,11 @@ class PostWidget extends StatelessWidget
 		final TextStyle? textStyle = theme.textTheme.displayMedium;
 
 		// At every index in the list, grab the info from the post
-		final DateTime date = list[index].date;
 		final String restaurant = list[index].restaurant;
+		final DateTime date = list[index].date;
 		final String food = list[index].food;
 		final String description = list[index].description;
+		final String? image = list[index].image;
 		final double price = list[index].price;
 		final double rating = list[index].rating;
 
@@ -144,7 +145,7 @@ class PostWidget extends StatelessWidget
 						displayImage(context, Icons.account_circle, 55, const Color.fromARGB(255, 0, 0, 0), topDistance: 0 + extraPadding, leftDistance: deviceWidth * 0.75, rightDistance: 20),
 						
 						// Description + Image
-						carouselScroller(lightCardColor, description, textStyle, lightMode, theme),
+						carouselScroller(lightCardColor, description, image, textStyle, lightMode, theme),
 
 						// Like
 						displayImage2(context, Icons.thumb_up_rounded, 40, mediumCardColor, const Color.fromARGB(255, 255, 255, 255), topDistance: topDistanceForBottomRow + extraPadding, leftDistance: deviceWidth * 0.1, rightDistance: deviceWidth * 0.75),
@@ -204,7 +205,7 @@ class PostWidget extends StatelessWidget
 		);
 	}
 
-	Widget carouselScroller(Color lightCardColor, String description, TextStyle? textStyle, bool lightMode, ThemeData theme)
+	Widget carouselScroller(Color lightCardColor, String description, String? image, TextStyle? textStyle, bool lightMode, ThemeData theme)
 	{
 		return Positioned
 		(
@@ -216,7 +217,38 @@ class PostWidget extends StatelessWidget
 				itemCount: 2, // 1 Description + 1 Image = 2 Items
 				itemBuilder: (BuildContext context, int itemIndex, int pageViewIndex)
 				{
-					if(itemIndex == 0) // Description Card
+					if(image != null)
+					{
+						if(itemIndex == 0) // Description Card
+						{
+							return Card
+							(
+								color: lightCardColor,
+								elevation: 5,
+								child: Padding
+								(
+									padding: const EdgeInsets.all(10),
+									child: Text
+									(
+										description, maxLines: 10, overflow: TextOverflow.ellipsis, style: textStyle?.copyWith(fontWeight: lightMode ? FontWeight.normal : FontWeight.w600, fontSize: 20, color: Utils.getColor(null, theme))
+									),
+								),
+							);
+						}
+						else // Image Card
+						{
+							return Image.file
+							(
+								File(image),
+								width: 200,
+								height: 200,
+								fit: BoxFit.cover,
+								cacheWidth: 400, // Memory optimization
+								errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+							);
+						}
+					}
+					else
 					{
 						return Card
 						(
@@ -231,10 +263,6 @@ class PostWidget extends StatelessWidget
 								),
 							),
 						);
-					}
-					else // Image Card
-					{
-						return Image.asset('assets/images/food.jpg');
 					}
 				},
 				options: custom_carousel.CarouselOptions

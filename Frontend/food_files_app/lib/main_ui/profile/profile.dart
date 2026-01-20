@@ -37,16 +37,45 @@ class _ProfilePageState extends State<ProfilePage>
 		final int following = 15;
 		final String bio = "Cool guy";
 
+		Brightness brightness = Theme.of(context).brightness;
+		bool lightMode = brightness == Brightness.light;
+
     	return Column
 		(
 			children:
 			[
 				const Icon(Icons.account_circle),
+
 				Text(accountName),
 				Text("Posts: $numberOfPosts"),
 				Text("Followers: $followers"),
 				Text("Following: $following"),
 				Text(bio),
+
+				Switch
+				(
+					value: lightMode,
+					onChanged: (value)
+					{
+						setState(()
+						{
+							lightMode = !value;
+
+							if(brightness == Brightness.light)
+							{
+								brightness = Brightness.dark;
+							}
+							else
+							{
+								brightness = Brightness.light;
+							}
+						});
+					},
+					activeTrackColor: Colors.lightGreenAccent,
+					activeThumbColor: Colors.green,
+					inactiveTrackColor: Colors.redAccent,
+					inactiveThumbColor: Colors.red,
+				),
 
 				profileTab(0, Icons.restaurant_menu), // Shows the posts in their folders
 				profileTab(1, Icons.list_sharp), // Shows ... TODO: ADD MORE TABS
@@ -60,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage>
   	}
 
 	// Tabs in the profile that transports the user to different sections such as the folder section, a custom list section, etc
-	Widget profileTab(int selectedIndex, IconData icon)
+	Widget profileTab(int index, IconData icon)
 	{
 		return ElevatedButton
 		(
@@ -68,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage>
 			{
 				setState(()
 				{
-					selectedIndex = 0;
+					selectedIndex = index;
 				});
 			},
 			child: Icon(icon)
