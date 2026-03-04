@@ -28,6 +28,18 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Takes the token passed into the terminal when building it so that I can use mapbox
+        val mapboxToken = if (project.hasProperty("ACCESS_TOKEN"))
+        {
+            project.property("ACCESS_TOKEN").toString()
+        }
+        else // Need this so that it doesn't crash
+        {
+            ""
+        }
+        
+        resValue("string", "ACCESS_TOKEN", mapboxToken)
     }
 
     buildTypes {

@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:sunrise_sunset_api/src/sunrise_sunset_response.dart';
 import 'package:sunrise_sunset_api/sunrise_sunset_api.dart';
+
 class Post
 {
 	// pfp
@@ -48,7 +49,6 @@ class _MapPageState extends State<MapPage>
 	bool _permissionGranted = false;
 	late geo.Position _userPosition;
 	late MapboxMap _mapboxMap;
-	late StyleLoadedEventData _styleData;
 	String restaurant = "Unknown Restaurant";
 	String location = "Unknown Location";
 
@@ -235,7 +235,6 @@ class _MapPageState extends State<MapPage>
 
 			onStyleLoadedListener: (data)
 			{
-				_styleData = data;
 				_mapboxMap.style.setStyleImportConfigProperty("basemap", "lightPreset", "day");
 				_mapboxMap.style.setStyleImportConfigProperty("basemap", "showPointOfInterestLabels", true);
 
@@ -481,44 +480,49 @@ class _DescriptionPageState extends State<DescriptionPage>
 		(
 			backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
 			appBar: AppBar(title: const Text("Description")),
-			body: Padding
+			body: SingleChildScrollView
 			(
-				padding: const EdgeInsets.all(15.0),
-				child: Column // try Stack
+				child: Padding
 				(
-					children:
-					[
-						// Restaurant
-						immutableTextField("Restaurant", widget.restaurant, textStyle: textStyle),
+					padding: const EdgeInsets.all(15.0),
+					child: Column // try Stack
+					(
+						children:
+						[
+							// Restaurant
+							immutableTextField("Restaurant", widget.restaurant, textStyle: textStyle),
 
-						// Location
-						immutableTextField("Location", widget.location, textStyle: textStyle),
+							// Location
+							immutableTextField("Location", widget.location, textStyle: textStyle),
 
-						// Title
-						textBox("Title", titleController, textStyle: textStyle, fieldToSave: 1),
+							// Title
+							textBox("Title", titleController, textStyle: textStyle, fieldToSave: 1),
 
-						// Food
-						textBox("Food", foodController, textStyle: textStyle, fieldToSave: 2),
+							// Food
+							textBox("Food", foodController, textStyle: textStyle, fieldToSave: 2),
 
-						// Take Photo
-						takePhoto(),
+							// Take Photo
+							takePhoto(),
 
-						// Display Photo
-						displayPhoto(),
+							// Display Photo
+							displayPhoto(),
 
-						// Description
-						textBox("Description", descriptionController, textStyle: textStyle, fieldToSave: 3),
+							// Description
+							textBox("Description", descriptionController, textStyle: textStyle, fieldToSave: 3),
 
-						// Price
-						textBox("Price", priceController, textStyle: textStyle, fieldToSave: 4, priceField: true),
+							// Price
+							textBox("Price", priceController, textStyle: textStyle, fieldToSave: 4, priceField: true),
 
-						// Rating
-						ratingDropdown(),
+							// Rating
+							ratingDropdown(),
 
-						// Upload Button
-						upload(),
-					]
-				)
+							// Upload Button
+							upload(),
+
+							const SizedBox(height: 100)
+						]
+					)
+				),
 			)
 		);
   	}
@@ -611,7 +615,7 @@ class _DescriptionPageState extends State<DescriptionPage>
 		}
 		else
 		{
-			return Icon(Icons.local_pizza);
+			return const Icon(Icons.local_pizza);
 		}
 	}
 
