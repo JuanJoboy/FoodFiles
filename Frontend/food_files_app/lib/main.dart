@@ -6,11 +6,12 @@ import "package:food_files_app/main_ui/post/post2.dart";
 import "package:food_files_app/main_ui/profile/folders/location_folder.dart";
 import "package:food_files_app/main_ui/profile/profile.dart";
 import "package:food_files_app/main_ui/profile/folders/restaurant_folder.dart";
+import "package:food_files_app/utilities/colours.dart";
+import "package:food_files_app/utilities/settings.dart";
 import "package:food_files_app/utilities/utilities.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
 
-// TODO: Add try-catches everywhere
 void main()
 {
 	// Map Box and camera stuff
@@ -22,13 +23,15 @@ void main()
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
+				ChangeNotifierProvider(create: (context) => ThemeNotifier()),
 				ChangeNotifierProvider(create: (context) => LocationFoldersList()), // A notifier that isn't dependent on anything, it's made first cause the one below needs it.
 				ChangeNotifierProxyProvider<LocationFoldersList, RestaurantFoldersList> // The restaurant notifier is dependent on the location notifier. It gives the restaurant list a reference to the location list without having to pass around "context" and make it dependent on the UI tree
 				(
 					create: (_) => RestaurantFoldersList(), // Called once
 					update: (_, locationList, restaurantList) // Called whenever the the dependency (location list) notifies listeners
 					{
-						restaurantList!.updateDependencies(locationList); // "!" (Null Assertion): Tells the Dart compiler that the object is definitely not null. If it is null, the app will throw a runtime error.
+						restaurantList!.updateDependencies(locationList);
 						return restaurantList;
 					}
 				),
@@ -54,30 +57,74 @@ class MyApp extends StatelessWidget
 	@override
 	Widget build(BuildContext context)
 	{
-		const Color mySeed = Color.fromARGB(255, 0, 136, 255);
+		const Color lightSeed = Color.fromARGB(255, 116, 187, 249);
+		const Color darkSeed = Colors.blueGrey;
 		
 		return MaterialApp
 		(
 			title: 'Food Files',
+			// Light Theme
 			theme: ThemeData
 			(
+				textTheme: ThemeData.light().textTheme.apply
+				(
+					bodyColor: Colors.black,
+					displayColor: Colors.black,
+				),
 				useMaterial3: true,
+				scaffoldBackgroundColor: lightSeed,
 				colorScheme: ColorScheme.fromSeed
 				(
-					seedColor: mySeed,
-					brightness: Brightness.light, // Light Mode
+					brightness: Brightness.light,
+					seedColor: lightSeed,
 				),
+				extensions: 
+				[
+					const AppColours
+					(
+						text: Colors.black,
+						backgroundColour: lightSeed,
+					)
+				]
 			),
+			// Dark Theme
 			darkTheme: ThemeData
 			(
+				textTheme: ThemeData.dark().textTheme.apply
+				(
+					bodyColor: Colors.white,
+					displayColor: Colors.white,
+				),
 				useMaterial3: true,
+				scaffoldBackgroundColor: darkSeed,
 				colorScheme: ColorScheme.fromSeed
 				(
-					seedColor: mySeed,
-					brightness: Brightness.dark, // Dark Mode
+					brightness: Brightness.dark,
+					seedColor: darkSeed,
 				),
+				extensions: 
+				[
+					const AppColours
+					(
+						text: Colors.white,
+						backgroundColour: darkSeed,
+					)
+				]
 			),
-			themeMode: ThemeMode.system, // Auto sets to the device's setting
+			builder: (context, child)
+			{
+				// Makes the app look the same everywhere, and it won't adapt to people's phones settings
+				return MediaQuery
+				(
+					data: MediaQuery.of(context).copyWith
+					(
+						textScaler: TextScaler.noScaling,
+						boldText: false
+					),
+					child: child!
+				);
+			},
+			themeMode: context.watch<ThemeNotifier>().currentUnit.value,
 			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
 		);
 	}
@@ -98,116 +145,89 @@ class _MyHomePageState extends State<MyHomePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		final ColoredBox mainArea = Utils.switchPage(context, getCurrentPage(selectedIndex));
+		int selectedIndex = context.watch<NavigationNotifier>().selectedIndex;
 
 		return LayoutBuilder
 		(
 			builder: (context, constraints)
 			{
-				final Device device = Utils.deviceIs(constraints);
-
-				if(device == Device.phone)
-				{
-					return Scaffold // Use scaffold instead of column so that any space i missed out on isn't pure black. Scaffold works better on phones and has a dedicated nav bar parameter
-					(
-						body: mainArea, // put the main area above the mobile nav bar
-						bottomNavigationBar: mobileNavigationBar()
-					);
-				}
-				else // If the screen is wide, it returns a Row:
-				{
-					return Row
-					(
-						children: nonMobileNavigationBar(mainArea)
-					);
-				}
+				return Scaffold // Use scaffold instead of column so that any space i missed out on isn't pure black. Scaffold works better on phones and has a dedicated nav bar parameter
+				(
+					body: AppBody(selectedIndex: selectedIndex), // put the main area above the mobile nav bar
+					bottomNavigationBar: const MobileNavigationBar()
+				);
 			}
 		);
 	}
+}
 
-	Widget getCurrentPage(int selectedIndex)
+class AppBody extends StatelessWidget
+{
+	final int selectedIndex;
+
+	const AppBody({super.key, required this.selectedIndex});
+
+	@override
+	Widget build(BuildContext context)
 	{
-		return switch(selectedIndex)
-		{
-			0 => const FeedPage(),
-			// 1 => const PostPage(),
-			1 => const MapPage(),
-			2 => const ProfilePage(),
-			_ => const FeedPage()
-		};
+		return SafeArea // Provides in built padding so that the app doesn't overlap the phone's OS items like time, battery, etc.
+		(
+			child: switch (selectedIndex)
+			{
+				0 => const PageSwitcher(nextPage: FeedPage()),
+				// 1 => const PageSwitcher(nextPage: PostPage()), // Not in use at the moment
+				1 => const PageSwitcher(nextPage: MapPage()),
+				2 => const PageSwitcher(nextPage: ProfilePage()),
+				_ => const PageSwitcher(nextPage: FeedPage()),
+			}
+		);
 	}
+}
 
-	Widget mobileNavigationBar()
+class MobileNavigationBar extends StatelessWidget
+{
+	const MobileNavigationBar({super.key});
+
+	@override
+	Widget build(BuildContext context)
 	{
+		// Read the index so this micro-widget only rebuilds when the index changes
+		final selectedIndex = context.read<NavigationNotifier>().selectedIndex;
+
 		return BottomNavigationBar
 		(
+			type: BottomNavigationBarType.fixed,
+			showSelectedLabels: false,
+			showUnselectedLabels: false,
+			currentIndex: selectedIndex,
+			iconSize: 30,
+			onTap: (value) => context.read<NavigationNotifier>().changeIndex(value),
 			items:
 			[
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
-						child: const Icon(Icons.home_rounded, size: 30),
-					),
-					label: "" // Nav items need labels but I dont actually want any text
-				),
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10), // Pushes the icon down 10 pixels
-						child: const Icon(Icons.add, size: 30, color: Colors.green,),
-					),
-					label: ""
-				),
-				BottomNavigationBarItem
-				(
-					icon: Transform.translate
-					(
-						offset: const Offset(0, 10),
-						child: const Icon(Icons.account_circle_rounded, size: 30),
-					),
-					label: ""
-				),
+				_navItem(Icons.home_rounded, "Home"),
+				_navItem(Icons.add, "Add", iconColour: Colors.green),
+				_navItem(Icons.account_circle_rounded, "Profile"),
 			],
-			currentIndex: selectedIndex, // Sets the page to the feed page on start up
-			onTap: (value) // When a tab is tapped, setState tells Flutter the selectedIndex changed, triggering a rebuild to show the new page.
-			{
-				setState( ()
-				{
-					selectedIndex = value; // Tapping on a nav bar item changes the page
-				});
-			},
 		);
 	}
 
-	List<Widget> nonMobileNavigationBar(ColoredBox mainArea)
+	BottomNavigationBarItem _navItem(IconData icon, String label, {Color? iconColour})
 	{
-		return
-		[
-			SafeArea
-			(
-				child: NavigationRail
-				(
-					// extended: constraints.maxWidth >= 600, // If the screen is very wide (600+), the side bar expands to show text labels next to the icons.
-					destinations: const
-					[
-						NavigationRailDestination(icon: Icon(Icons.home, size: 50,), label: Text("")),
-						NavigationRailDestination(icon: Icon(Icons.account_circle_rounded, size: 50,), label: Text("")),
-					],
-					selectedIndex: selectedIndex,
-					onDestinationSelected: (value)
-					{
-						setState(()
-						{
-							selectedIndex = value;
-						});
-					},
-				)
-			),
-			
-			Expanded(child: mainArea), // The rest of the non-nav bar content takes up the remaining horizontal space to the right of the rail.
-		];
+		return BottomNavigationBarItem
+		(
+			icon: Icon(icon, color: iconColour),
+			label: label,
+		);
+	}
+}
+
+class NavigationNotifier extends ChangeNotifier
+{
+	int selectedIndex = 1;
+
+	void changeIndex(int newIndex)
+	{
+		selectedIndex = newIndex;
+		notifyListeners();
 	}
 }

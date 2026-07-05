@@ -256,7 +256,7 @@ class _MapPageState extends State<MapPage>
 								Navigator.push
 								(
 									context,
-									MaterialPageRoute(builder: (context) => Utils.switchPage(context, CalendarPage(restaurant, location))), // Also the method shouldn't be async, otherwise this method wouldn't play nice. And it should only happen after restaurant and location have actually been found. Otherwise it can move on when the async stuff hasn't finished yet
+									MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: CalendarPage(restaurant, location))) // Also the method shouldn't be async, otherwise this method wouldn't play nice. And it should only happen after restaurant and location have actually been found. Otherwise it can move on when the async stuff hasn't finished yet
 								);
 							}
 						});
@@ -399,7 +399,7 @@ class _CalendarPageState extends State<CalendarPage>
 								Navigator.push
 								(
 									context,
-									MaterialPageRoute(builder: (context) => Utils.switchPage(context, DescriptionPage(widget.restaurant, widget.location, selectedDay))),
+									MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: DescriptionPage(widget.restaurant, widget.location, selectedDay)))
 								);
 							},
 							child: const Padding

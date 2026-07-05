@@ -66,7 +66,7 @@ class _RestaurantFolderWidgetState extends State<RestaurantFolderWidget>
 						Navigator.push
 						(
 							context,
-							MaterialPageRoute(builder: (context) => Utils.switchPage(context, LocationFolderPage(widget.list[widget.index]))) // Takes you to the page that shows all the locations connected to the restaurant
+							MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: LocationFolderPage(widget.list[widget.index]))) // Takes you to the page that shows all the locations connected to the restaurant
 						);
 					});
     			},

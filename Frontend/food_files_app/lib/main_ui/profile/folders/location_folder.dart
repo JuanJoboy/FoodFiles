@@ -70,7 +70,7 @@ class _LocationFolderWidgetState extends State<LocationFolderWidget>
 					Navigator.push
 					(
 						context,
-						MaterialPageRoute(builder: (context) => Utils.switchPage(context, FeedPage.filedMeals(restaurantName, locationName))), // Clicking on a location shows all the posts that are filtered by restaurant and location
+						MaterialPageRoute(builder: (context) => PageSwitcher(nextPage: FeedPage.filedMeals(restaurantName, locationName))) // Clicking on a location shows all the posts that are filtered by restaurant and location
 					);
     			},
 				child: Padding

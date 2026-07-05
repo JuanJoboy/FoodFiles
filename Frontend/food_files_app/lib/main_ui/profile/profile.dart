@@ -82,7 +82,7 @@ class _ProfilePageState extends State<ProfilePage>
 
 				Expanded
 				(
-					child: Utils.switchPage(context, getCurrentPage(selectedIndex)), // Shows the actual tab page below the profile details and tab buttons
+					child: PageSwitcher(nextPage: getCurrentPage(selectedIndex)) // Shows the actual tab page below the profile details and tab buttons
 				)
 			],
 		);

@@ -1,5 +1,4 @@
 import 'dart:io';
-// import 'package:currency_converter_pro/currency_converter_pro.dart';
 import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart' as custom_carousel;
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ import 'package:provider/provider.dart';
 
 class FeedPage extends StatelessWidget
 {
-	// These nullable fields are used for the filedMeals constructor
 	final String? restaurantName;
 	final String? locationName;
 
@@ -26,35 +24,30 @@ class FeedPage extends StatelessWidget
 		final ThemeData theme = Theme.of(context);
 		final TextStyle? textStyle = theme.textTheme.displaySmall;
 
-		const Widget noMealsText = Center(child: Text("No meals have been filed :("));
-
 		return Column
 		(
 			children:
 			[
-				Card // Puts a card at the top that says "Food Files"
-				(
-					color: Utils.getBackgroundColor(theme),
-					child: SizedBox // Makes a box with a set size so that I can put the width below, and make the food files banner at the top take up the entire phone width
-					(
-						width: double.infinity, // Makes the width of the space as big as the phone
-						child: Padding
-						(
-							padding: const EdgeInsets.only(top: 15.0),
-							child: Text("Food Files", textAlign: TextAlign.center, style: GoogleFonts.allura(textStyle: textStyle?.copyWith(fontWeight: FontWeight.bold))),
-						),
-					)
-				),
-
+				Text("Food Files", textAlign: TextAlign.center, style: GoogleFonts.allura(textStyle: textStyle?.copyWith(fontWeight: FontWeight.bold))),
 				Expanded // Below the food files card is a list of every post within an expanded widget so that it fits within the phone and doesn't overflow. Inside a Column, a ListView (which has infinite height) will crash the app with a "Vertical viewport was given unbounded height" error unless wrapped in Expanded.
 				(
-					child: listOfMeals(list, noMealsText, restaurantName: restaurantName, locationName: locationName)
+					child: Feed(list: list, restaurantName: restaurantName, locationName: locationName)
 				)
 			],
 		);
   	}
+}
 
-	Widget listOfMeals(AllPosts list, Widget noMealsText, {String? restaurantName, String? locationName})
+class Feed extends StatelessWidget
+{
+	final AllPosts list;
+	final String? restaurantName;
+	final String? locationName;
+
+	const Feed({super.key, required this.list, required this.restaurantName, required this.locationName});
+
+	@override
+	Widget build(BuildContext context)
 	{
 		List<Post> listToDisplay = list.postsList; // list.postsList is final, so it can't be a setter, so i make a new reference to the original master list. It's not a copy, its just a reference so it's nearly instantaneous and uses negligible memory.
 
@@ -64,13 +57,13 @@ class FeedPage extends StatelessWidget
 			listToDisplay = listToDisplay
 			.where
 			(
-				(post) => post.restaurant.trim().toLowerCase() == restaurantName.trim().toLowerCase() && post.location.trim().toLowerCase() == locationName.trim().toLowerCase()
+				(post) => post.restaurant.trim().toLowerCase() == restaurantName?.trim().toLowerCase() && post.location.trim().toLowerCase() == locationName?.trim().toLowerCase()
 			).toList(); // This actually does make a new list, but is necessary to show the filtered list. Also helps ensure I don't tamper with the original master list
 		}
 
 		if(listToDisplay.isEmpty)
 		{
-			return noMealsText; // If the list is empty then only print this text
+			return const Center(child: Text("No meals have been filed :(")); // If the list is empty then only print this text
 		}
 
 		return ListView.builder // .builder is lazy, which means it only creates the PostWidgets that are actually visible on the screen
@@ -105,223 +98,132 @@ class PostWidget extends StatelessWidget
 		final double price = list[index].price;
 		final double rating = list[index].rating;
 
-		double deviceWidth = MediaQuery.of(context).size.width;
-		double extraPadding = 40; // Needed to make the break line between each post look symmetrical
-		final double sizedBoxHeight = 440; // the height of the sized box that contains all the info of the post
-		final double topDistanceForBottomRow = sizedBoxHeight * 0.76; // The distance that all the stuff in the bottom row is from the top of the container
-
-		final bool lightMode = theme.brightness == Brightness.light;
-		final Color darkCardColor = lightMode ? theme.colorScheme.onPrimaryFixed : theme.colorScheme.primaryFixed;
-		final Color mediumCardColor = lightMode ? theme.colorScheme.onPrimaryFixedVariant : theme.colorScheme.primaryFixedDim;
-		final Color lightCardColor = lightMode ? theme.colorScheme.primary : theme.colorScheme.primaryContainer;
-
-		return Padding
+		return Card
 		(
-			padding: const EdgeInsetsGeometry.fromLTRB(0, 0, 0, 20), // Adds 20 pixels to the bottom 
-			child: SizedBox
+			child: AspectRatio
 			(
-				height: sizedBoxHeight,
-				width: double.infinity,
-				child: Stack
+				aspectRatio: 9/16,
+				child: Padding
 				(
-					children:
-					[
-						Divider
-						(
-							color: theme.colorScheme.surfaceContainerLowest, // Line color
-							thickness: 3, // Height of the line itself
-						),
+					padding: const EdgeInsets.all(16.0),
+					child: Column
+					(
+						crossAxisAlignment: CrossAxisAlignment.stretch,
+						mainAxisAlignment: MainAxisAlignment.spaceBetween,
+						children:
+						[
+							Row
+							(
+								mainAxisAlignment: MainAxisAlignment.spaceBetween,
+								children:
+								[
+									Text(restaurant),
+									Text(food),
+									const Icon(Icons.person)
+								],
+							),
 
-						// Date
-						displayText(context, theme, textStyle, DateFormat.yMMMd().format(date), 1, FontWeight.bold, 25, CrossAxisAlignment.center, 10, darkCardColor, topDistance: 160 + extraPadding, leftDistance: 20, rightDistance: deviceWidth * 0.5, elevation: 10, roundedEdge: true),
+							Center
+							(
+								child: Carousel(description: description, image: image)
+							),
 
-						// Restaurant
-						displayText(context, theme, textStyle, restaurant, 1, FontWeight.bold, 25, CrossAxisAlignment.center, 10, darkCardColor, topDistance: 0 + extraPadding, leftDistance: 20, rightDistance: deviceWidth * 0.5, elevation: 10, roundedEdge: true),
+							Row
+							(
+								mainAxisAlignment: MainAxisAlignment.spaceBetween,
+								children:
+								[
+									const Icon(Icons.thumbs_up_down_rounded),
+									const Icon(Icons.comment_rounded),
+									Text(formattedPrice(price)),
+									Text("$rating/10", style: TextStyle(color: Utils.getRatingColour(rating, theme)))
+								]
 
-						// Food
-						displayText(context, theme, textStyle, food, 1, FontWeight.w600, 15, CrossAxisAlignment.center, 7, mediumCardColor, topDistance: 22 + extraPadding, leftDistance: deviceWidth * 0.51, rightDistance: deviceWidth * 0.2, elevation: 0, roundedEdge: true),
-
-						// Profile Picture
-						displayImage(context, Icons.account_circle, 55, const Color.fromARGB(255, 0, 0, 0), topDistance: 0 + extraPadding, leftDistance: deviceWidth * 0.75, rightDistance: 20),
-						
-						// Description + Image
-						carouselScroller(lightCardColor, description, image, textStyle, lightMode, theme),
-
-						// Like
-						displayImage2(context, Icons.thumb_up_rounded, 40, mediumCardColor, const Color.fromARGB(255, 255, 255, 255), topDistance: topDistanceForBottomRow + extraPadding, leftDistance: deviceWidth * 0.1, rightDistance: deviceWidth * 0.75),
-
-						// Comment
-						displayImage2(context, Icons.comment_rounded, 40, mediumCardColor, const Color.fromARGB(255, 255, 255, 255), topDistance: topDistanceForBottomRow + extraPadding, leftDistance: deviceWidth * 0.3, rightDistance: deviceWidth * 0.6),
-
-						// Price
-						displayText(context, theme, textStyle, formattedPrice(price), 1, FontWeight.w500, 25, CrossAxisAlignment.center, 3, mediumCardColor, topDistance: topDistanceForBottomRow + extraPadding, leftDistance: deviceWidth * 0.5, rightDistance: deviceWidth * 0.3, elevation: 5, roundedEdge: false),
-						
-						// Rating
-						displayText(context, theme, textStyle, "$rating/10", 1, FontWeight.w500, 25, CrossAxisAlignment.center, 3, mediumCardColor, topDistance: topDistanceForBottomRow + extraPadding, leftDistance: deviceWidth * 0.75, rightDistance: deviceWidth * 0.1, elevation: 5, roundedEdge: false, rating: rating),
-					],
-				),
-			)
+							)
+						],
+					),
+				)
+			),
 		);
 	}
 
 	String formattedPrice(double numberPrice)
 	{
 		String locale = Platform.localeName; // Gets the device's locale
-		// String? currencyName = NumberFormat.simpleCurrency(locale: locale).currencyName?.toLowerCase(); // Gets the 3 letter name of the currency (AUD))
-		// if(currencyName != "aud")
-		// {
-		// 	number = CurrencyConverterPro().convertCurrency(amount: numberPrice, fromCurrency: currencyName!, toCurrency: "aud").toString().trim();
-		// }
 		final String price = NumberFormat.simpleCurrency(locale: locale).format(numberPrice); // Formats it to have proper decimal count, symbol and separator placement and symbol ($12.50, 12,50 €)
 		return price;
 	}
+}
 
-	Widget displayText(BuildContext context, ThemeData theme, TextStyle? textStyle, String text, int lines, FontWeight weight, double size, CrossAxisAlignment alignmentDirection, double paddingSize, Color cardColor, {double? topDistance, double? bottomDistance, double? leftDistance, double? rightDistance, double? elevation, bool? roundedEdge, double? rating})
-	{
-		return Positioned
-		(
-			top: topDistance,
-			bottom: bottomDistance,
-			left: leftDistance,
-			right: rightDistance, // Pushes the right side of the card this many pixels to the left
-			child: Card
-			(
-				color: cardColor,
-				elevation: elevation,
-				shape: roundedEdge == true ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)) : null,
-				child: Column
-				(
-					crossAxisAlignment: alignmentDirection,
-					children:
-					[
-						Padding
-						(
-							padding: EdgeInsets.all(paddingSize),
-							child: Text(text, maxLines: lines, overflow: TextOverflow.ellipsis, style: textStyle?.copyWith(fontWeight: weight, fontSize: size, color: Utils.getColor(rating, theme))), // For the other cards that aren't the price card, the rating is null and shows a regular text colour based on the theme
-						),
-					],
-				),
-			)
-		);
-	}
+class Carousel extends StatelessWidget
+{
+	final String description;
+	final String? image;
 
-	Widget carouselScroller(Color lightCardColor, String description, String? image, TextStyle? textStyle, bool lightMode, ThemeData theme)
-	{
-		return Positioned
-		(
-			top: 100,
-			left: 0,
-			right: 0,
-			child: custom_carousel.CarouselSlider.builder
-			(
-				itemCount: 2, // 1 Description + 1 Image = 2 Items
-				itemBuilder: (BuildContext context, int itemIndex, int pageViewIndex)
-				{
-					if(image != null)
-					{
-						if(itemIndex == 0) // Description Card
-						{
-							return Card
-							(
-								color: lightCardColor,
-								elevation: 5,
-								child: Padding
-								(
-									padding: const EdgeInsets.all(10),
-									child: Text
-									(
-										description, maxLines: 10, overflow: TextOverflow.ellipsis, style: textStyle?.copyWith(fontWeight: lightMode ? FontWeight.normal : FontWeight.w600, fontSize: 20, color: Utils.getColor(null, theme))
-									),
-								),
-							);
-						}
-						else // Image Card
-						{
-							return Image.file
-							(
-								File(image),
-								width: 200,
-								height: 200,
-								fit: BoxFit.cover,
-								cacheWidth: 400, // Memory optimization
-								errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-							);
-						}
-					}
-					else
-					{
-						return Card
-						(
-							color: lightCardColor,
-							elevation: 5,
-							child: Padding
-							(
-								padding: const EdgeInsets.all(10),
-								child: Text
-								(
-									description, maxLines: 10, overflow: TextOverflow.ellipsis, style: textStyle?.copyWith(fontWeight: lightMode ? FontWeight.normal : FontWeight.w600, fontSize: 20, color: Utils.getColor(null, theme))
-								),
-							),
-						);
-					}
-				},
-				options: custom_carousel.CarouselOptions
-				(
-					height: 200,
-					viewportFraction: 0.8,
-					initialPage: 0,
-					enableInfiniteScroll: true,
-					reverse: true,
-					autoPlay: false,
-					enlargeCenterPage: true,
-					scrollDirection: Axis.horizontal
-				)
-			)
-		) ;
-	}
+  	const Carousel({super.key, required this.description, this.image});
 	
-	Widget displayImage(BuildContext context, IconData iconSymbol, double size, Color color, {double? topDistance, double? bottomDistance, double? leftDistance, double? rightDistance})
+	@override
+	Widget build(BuildContext context)
 	{
-		return Positioned
+		return custom_carousel.CarouselSlider.builder
 		(
-			top: topDistance,
-			bottom: bottomDistance,
-			left: leftDistance,
-			right: rightDistance,
-			child: Column
+			itemCount: 2, // 1 Description + 1 Image = 2 Items
+			itemBuilder: (BuildContext context, int itemIndex, int pageViewIndex)
+			{
+				if(image != null)
+				{
+					return switch(itemIndex)
+					{
+						0 => Description(description: description),
+						1 => FoodPicture(picture: image!),
+						_ => Description(description: description)
+					};
+				}
+				else
+				{
+					return Description(description: description);
+				}
+			},
+			options: custom_carousel.CarouselOptions
 			(
-				children:
-				[
-					Icon(iconSymbol, semanticLabel: "", size: size, color: color,)
-				],
-			),
+				initialPage: 0,
+				enableInfiniteScroll: true,
+				reverse: true,
+				autoPlay: false,
+				enlargeCenterPage: true,
+				scrollDirection: Axis.horizontal
+			)
 		);
 	}
+}
 
-	Widget displayImage2(BuildContext context, IconData iconSymbol, double size, Color cardColor, Color imageColor, {double? topDistance, double? bottomDistance, double? leftDistance, double? rightDistance})
+class Description extends StatelessWidget
+{
+	final String description;
+
+  	const Description({super.key, required this.description});
+	
+	@override
+	Widget build(BuildContext context)
 	{
-		return Positioned
+		return Text(description, maxLines: 10, overflow: TextOverflow.ellipsis);
+	}	
+}
+
+class FoodPicture extends StatelessWidget
+{
+	final String picture;
+
+  	const FoodPicture({super.key, required this.picture});
+	
+	@override
+	Widget build(BuildContext context)
+	{
+		return Image.file
 		(
-			top: topDistance,
-			bottom: bottomDistance,
-			left: leftDistance,
-			right: rightDistance,
-			child: Card
-			(
-				color: cardColor,
-				elevation: 5,
-				child: Column
-				(
-					children:
-					[
-						Padding
-						(
-							padding: const EdgeInsets.all(3),
-							child: Icon(iconSymbol, semanticLabel: "", size: size, color: imageColor,),
-						)
-					],
-				),
-			)
+			File(picture),
+			cacheWidth: 400, // Memory optimization
+			errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
 		);
 	}
 }
