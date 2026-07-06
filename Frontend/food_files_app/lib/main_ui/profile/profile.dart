@@ -85,7 +85,7 @@ class ProfileGallery extends StatelessWidget
 		return switch (selectedIndex)
 		{
 			0 => const PageSwitcher(nextPage: RestaurantFolderPage()),
-			1 => const PageSwitcher(nextPage: FeedPage()),
+			1 => const PageSwitcher(nextPage: FeedPage(cameFromProfile: true)),
 			2 => const PageSwitcher(nextPage: RestaurantFolderPage()),
 			_ => const PageSwitcher(nextPage: RestaurantFolderPage()),
 		};

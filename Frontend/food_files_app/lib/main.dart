@@ -2,7 +2,9 @@
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:food_files_app/main_ui/feed/feed.dart";
 // import "package:food_files_app/main_ui/post/post.dart";
-import "package:food_files_app/main_ui/post/post2.dart";
+import "package:food_files_app/main_ui/post/map/map.dart";
+import "package:food_files_app/main_ui/post/map/map_controller.dart";
+import "package:food_files_app/main_ui/post/post.dart";
 import "package:food_files_app/main_ui/profile/folders/location_folder.dart";
 import "package:food_files_app/main_ui/profile/profile.dart";
 import "package:food_files_app/main_ui/profile/folders/restaurant_folder.dart";
@@ -26,6 +28,7 @@ void main()
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ProfileNavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ThemeNotifier()),
+				ChangeNotifierProvider(create: (context) => MapNotifier()..useMapboxKey()),
 				ChangeNotifierProvider(create: (context) => LocationFoldersList()), // A notifier that isn't dependent on anything, it's made first cause the one below needs it.
 				ChangeNotifierProxyProvider<LocationFoldersList, RestaurantFoldersList> // The restaurant notifier is dependent on the location notifier. It gives the restaurant list a reference to the location list without having to pass around "context" and make it dependent on the UI tree
 				(
@@ -173,11 +176,11 @@ class AppBody extends StatelessWidget
 		(
 			child: switch (selectedIndex)
 			{
-				0 => const PageSwitcher(nextPage: FeedPage()),
+				0 => const PageSwitcher(nextPage: FeedPage(cameFromProfile: false)),
 				// 1 => const PageSwitcher(nextPage: PostPage()), // Not in use at the moment
-				// 1 => const PageSwitcher(nextPage: MapPage()),
+				1 => const PageSwitcher(nextPage: MapPage()),
 				2 => const PageSwitcher(nextPage: ProfilePage()),
-				_ => const PageSwitcher(nextPage: FeedPage()),
+				_ => const PageSwitcher(nextPage: FeedPage(cameFromProfile: false)),
 			}
 		);
 	}

@@ -1,9 +1,8 @@
 import 'dart:io';
+import 'package:food_files_app/main_ui/post/post.dart';
 import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart' as custom_carousel;
 import 'package:flutter/material.dart';
-// import 'package:food_files_app/main_ui/post/post.dart';
-import 'package:food_files_app/main_ui/post/post2.dart';
 import 'package:food_files_app/utilities/utilities.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -12,9 +11,37 @@ class FeedPage extends StatelessWidget
 {
 	final String? restaurantName;
 	final String? locationName;
+	final bool cameFromProfile;
 
-  	const FeedPage({super.key, this.restaurantName, this.locationName}); // Used to show every post
-  	const FeedPage.filedMeals(this.restaurantName, this.locationName, {super.key}); // Used in the Location Folder to show specific posts that match both the restaurant and the location of the parent folders
+  	const FeedPage({super.key, this.restaurantName, this.locationName, required this.cameFromProfile}); // Used to show every post
+  	const FeedPage.filedMeals(this.restaurantName, this.locationName, this.cameFromProfile, {super.key}); // Used in the Location Folder to show specific posts that match both the restaurant and the location of the parent folders
+
+	@override
+	Widget build(BuildContext context)
+	{
+		if(cameFromProfile == false) // If cameFromProfile is null, then it definitely won't be true, so I just have false as the backup
+		{
+			return RenderedPage(restaurantName: restaurantName, locationName: locationName, cameFromProfile: false);
+		}
+		else
+		{
+			return Scaffold
+			(
+				backgroundColor: Utils.getBackgroundColor(Theme.of(context)),
+				appBar: AppBar(title: const Text("Food Files")), // Adds this text, plus a back button
+				body: RenderedPage(restaurantName: restaurantName, locationName: locationName, cameFromProfile: true)
+			);
+		}
+  	}
+}
+
+class RenderedPage extends StatelessWidget
+{
+	final String? restaurantName;
+	final String? locationName;
+	final bool cameFromProfile;
+
+	const RenderedPage({super.key, required this.restaurantName, required this.locationName, required this.cameFromProfile});
 
 	@override
 	Widget build(BuildContext context)
@@ -28,14 +55,14 @@ class FeedPage extends StatelessWidget
 		(
 			children:
 			[
-				Text("Food Files", textAlign: TextAlign.center, style: GoogleFonts.allura(textStyle: textStyle?.copyWith(fontWeight: FontWeight.bold))),
+				cameFromProfile == false ? Text("Food Files", textAlign: TextAlign.center, style: GoogleFonts.allura(textStyle: textStyle?.copyWith(fontWeight: FontWeight.bold))) : const SizedBox.shrink(),
 				Expanded // Below the food files card is a list of every post within an expanded widget so that it fits within the phone and doesn't overflow. Inside a Column, a ListView (which has infinite height) will crash the app with a "Vertical viewport was given unbounded height" error unless wrapped in Expanded.
 				(
 					child: Feed(list: list, restaurantName: restaurantName, locationName: locationName)
 				)
 			],
 		);
-  	}
+	}
 }
 
 class Feed extends StatelessWidget
