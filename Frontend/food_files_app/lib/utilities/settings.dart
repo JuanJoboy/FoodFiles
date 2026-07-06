@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 mixin Settings<T>
@@ -85,4 +86,75 @@ class ThemeNotifier extends BaseSettingsNotifier<ThemeSetting>
 
 	@override
 	ThemeSetting get altOption => ThemeSetting.darkMode;
+}
+
+abstract class SettingsSwitch<T extends BaseSettingsNotifier> extends StatelessWidget
+{
+	IconData get initialIcon;
+	IconData get secondIcon;
+
+  	const SettingsSwitch({super.key});
+
+	@override
+	Widget build(BuildContext context)
+	{
+		// Generics allow context.watch<T>() to work dynamically for the subclass
+    	final notifier = context.watch<T>(); // This is essentially the same as calling something like watchNotifier(BuildContext context) where that method returned context.watch<notifier>(); and every subclass was forced to implement it with the type of BaseSettingsNotifier that they are
+
+		final bool isBaseMode = context.watch<T>().isBaseMode;
+		final bool isDarkMode = context.watch<ThemeNotifier>().isBaseMode;
+
+		return Switch
+		(
+			value: isBaseMode,
+			onChanged: (newValue)
+			{
+				notifier.updateMode(newValue);
+			},
+			thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states)
+			{
+				if(states.contains(WidgetState.selected))
+				{
+					return Icon(initialIcon, size: 20);
+				}
+
+				return Icon(secondIcon, size: 20);
+			}),
+			thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states)
+			{
+				if(states.contains(WidgetState.selected))
+				{
+					if(isDarkMode)
+					{
+						return isBaseMode ? Colors.black : Colors.white;
+					}
+					else
+					{
+						return isBaseMode ? Colors.white : Colors.black;
+					}
+				}
+				if(isDarkMode)
+				{
+					return isBaseMode ? Colors.black : Colors.white;
+				}
+				else
+				{
+					return isBaseMode ? Colors.white : Colors.black;
+				}
+			}),
+
+			inactiveTrackColor: Colors.amber[300],
+			activeTrackColor: Colors.blue[200],
+		);
+	}
+}
+
+class DarkModeSwitch extends SettingsSwitch<ThemeNotifier>
+{
+	@override
+	IconData get initialIcon => Icons.nights_stay_rounded;
+	@override
+	IconData get secondIcon => Icons.sunny;
+
+  	const DarkModeSwitch({super.key});
 }

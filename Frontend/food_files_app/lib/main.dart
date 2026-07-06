@@ -24,6 +24,7 @@ void main()
 			providers:
 			[
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
+				ChangeNotifierProvider(create: (context) => ProfileNavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ThemeNotifier()),
 				ChangeNotifierProvider(create: (context) => LocationFoldersList()), // A notifier that isn't dependent on anything, it's made first cause the one below needs it.
 				ChangeNotifierProxyProvider<LocationFoldersList, RestaurantFoldersList> // The restaurant notifier is dependent on the location notifier. It gives the restaurant list a reference to the location list without having to pass around "context" and make it dependent on the UI tree
@@ -140,8 +141,6 @@ class MyHomePage extends StatefulWidget
 
 class _MyHomePageState extends State<MyHomePage>
 {
-	int selectedIndex = 0;
-
 	@override
 	Widget build(BuildContext context)
 	{
@@ -176,7 +175,7 @@ class AppBody extends StatelessWidget
 			{
 				0 => const PageSwitcher(nextPage: FeedPage()),
 				// 1 => const PageSwitcher(nextPage: PostPage()), // Not in use at the moment
-				1 => const PageSwitcher(nextPage: MapPage()),
+				// 1 => const PageSwitcher(nextPage: MapPage()),
 				2 => const PageSwitcher(nextPage: ProfilePage()),
 				_ => const PageSwitcher(nextPage: FeedPage()),
 			}
@@ -223,7 +222,7 @@ class MobileNavigationBar extends StatelessWidget
 
 class NavigationNotifier extends ChangeNotifier
 {
-	int selectedIndex = 1;
+	int selectedIndex = 0;
 
 	void changeIndex(int newIndex)
 	{

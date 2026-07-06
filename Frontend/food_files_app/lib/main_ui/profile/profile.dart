@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:food_files_app/main_ui/feed/feed.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
+import 'package:food_files_app/utilities/settings.dart';
 import 'package:food_files_app/utilities/utilities.dart';
+import 'package:provider/provider.dart';
 
 class Profile
 {
@@ -30,21 +34,25 @@ class _ProfilePageState extends State<ProfilePage>
 	@override
 	Widget build(BuildContext context)
 	{
-		// final Image profilePicture = ;
+		int selectedIndex = context.watch<ProfileNavigationNotifier>().selectedIndex;
+
+		final String profilePicture = "/Frontend/food_files_app/assets/images/pfp.jpg";
 		final String accountName = "Juan";
 		final int numberOfPosts = 3;
 		final int followers = 30;
 		final int following = 15;
 		final String bio = "Cool guy";
 
-		Brightness brightness = Theme.of(context).brightness;
-		bool lightMode = brightness == Brightness.light;
-
     	return Column
 		(
 			children:
 			[
-				const Icon(Icons.account_circle),
+				Image.file
+				(
+					File(profilePicture),
+					cacheWidth: 400, // Memory optimization
+					errorBuilder: (context, error, stackTrace) => const Icon(Icons.account_circle),
+				),
 
 				Text(accountName),
 				Text("Posts: $numberOfPosts"),
@@ -52,65 +60,98 @@ class _ProfilePageState extends State<ProfilePage>
 				Text("Following: $following"),
 				Text(bio),
 
-				Switch
-				(
-					value: lightMode,
-					onChanged: (value)
-					{
-						setState(()
-						{
-							lightMode = !value;
+				ListTile(trailing: const DarkModeSwitch(), title: Text(Utils.whatModeIsIt(context.watch<ThemeNotifier>().isBaseMode, ThemeSetting.darkMode.name, ThemeSetting.lightMode.name))),
 
-							if(brightness == Brightness.light)
-							{
-								brightness = Brightness.dark;
-							}
-							else
-							{
-								brightness = Brightness.light;
-							}
-						});
-					},
-					activeTrackColor: Colors.lightGreenAccent,
-					activeThumbColor: Colors.green,
-					inactiveTrackColor: Colors.redAccent,
-					inactiveThumbColor: Colors.red,
-				),
-
-				profileTab(0, Icons.restaurant_menu), // Shows the posts in their folders
-				profileTab(1, Icons.list_sharp), // Shows ... TODO: ADD MORE TABS
+				const ProfileNavigationBar(),
 
 				Expanded
 				(
-					child: PageSwitcher(nextPage: getCurrentPage(selectedIndex)) // Shows the actual tab page below the profile details and tab buttons
+					child: ProfileGallery(selectedIndex: selectedIndex)
 				)
 			],
 		);
   	}
+}
 
-	// Tabs in the profile that transports the user to different sections such as the folder section, a custom list section, etc
-	Widget profileTab(int index, IconData icon)
+class ProfileGallery extends StatelessWidget
+{
+	final int selectedIndex;
+
+	const ProfileGallery({super.key, required this.selectedIndex});
+
+	@override
+	Widget build(BuildContext context)
 	{
+		return switch (selectedIndex)
+		{
+			0 => const PageSwitcher(nextPage: RestaurantFolderPage()),
+			1 => const PageSwitcher(nextPage: FeedPage()),
+			2 => const PageSwitcher(nextPage: RestaurantFolderPage()),
+			_ => const PageSwitcher(nextPage: RestaurantFolderPage()),
+		};
+	}
+}
+
+class ProfileNavigationBar extends StatelessWidget
+{
+	const ProfileNavigationBar({super.key});
+
+	@override
+	Widget build(BuildContext context)
+	{
+		return Row
+		(
+			crossAxisAlignment: CrossAxisAlignment.center,
+			mainAxisAlignment: MainAxisAlignment.spaceBetween,
+			children:
+			[
+				ProfileGalleryItem(icon: Icons.restaurant_menu_rounded, label: "Restaurants", context: context, index: 0),
+				ProfileGalleryItem(icon: Icons.home, label: "XXX", context: context, index: 1),
+				ProfileGalleryItem(icon: Icons.report_sharp, label: "YYY", context: context, index: 2),
+			],
+		);
+	}
+}
+
+class ProfileGalleryItem extends StatelessWidget
+{
+	final IconData icon;
+	final String label;
+	final BuildContext context;
+	final int index;
+
+	const ProfileGalleryItem({super.key, required this.icon, required this.label, required this.context, required this.index});
+
+	@override
+	Widget build(BuildContext context)
+	{
+		bool itemSelected = context.watch<ProfileNavigationNotifier>().selectedIndex == index;
+
 		return ElevatedButton
 		(
 			onPressed: ()
 			{
-				setState(()
-				{
-					selectedIndex = index;
-				});
+				context.read<ProfileNavigationNotifier>().changeIndex(index);
 			},
-			child: Icon(icon)
+			child: Icon
+			(
+				icon,
+				semanticLabel: label,
+				size: itemSelected == true ? 32 : 24,
+				weight: itemSelected == true ? 600 : 400,
+				grade: itemSelected == true ? 100 : 50,
+			)
 		);
 	}
+}
 
-	Widget getCurrentPage(int selectedIndex)
+class ProfileNavigationNotifier extends ChangeNotifier
+{
+	int selectedIndex = 0;
+
+	void changeIndex(int newIndex)
 	{
-		return switch(selectedIndex)
-		{
-			0 => const RestaurantFolderPage(),
-			1 => const FeedPage(),
-			_ => const RestaurantFolderPage()
-		};
+		selectedIndex = newIndex;
+		notifyListeners();
 	}
 }
