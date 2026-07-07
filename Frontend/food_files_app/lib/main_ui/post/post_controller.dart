@@ -24,22 +24,6 @@ class Post
 
 class AllPosts extends ChangeNotifier
 {
-	String postTitle = "";
-	String postFood = "";
-	String postDescription = "";
-	String postPrice = "";
-	String postRating = "";
-
-	void updateControllers({String? title, String? food, String? description, String? price, String? rating})
-	{
-		// If the parameter isn't null, then save the value, so that when the page rebuilds, it rebuilds with this value
-		if(title != null) postTitle = title;
-		if(food != null) postFood = food;
-		if(description != null) postDescription = description;
-		if(price != null) postPrice = price;
-		if(rating != null) postRating = rating;
-	}
-
 	final List<Post> postsList = List.empty(growable: true); // A master list that contains every post
 	RestaurantFoldersList? _restaurantList; // The list that holds all the restaurant folders
 

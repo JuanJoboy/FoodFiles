@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:food_files_app/main_ui/feed/feed.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
 import 'package:food_files_app/utilities/settings.dart';
 import 'package:food_files_app/utilities/utilities.dart';
@@ -84,8 +83,9 @@ class ProfileGallery extends StatelessWidget
 	{
 		return switch (selectedIndex)
 		{
+			// TODO: Add more pages to the gallery
 			0 => const PageSwitcher(nextPage: RestaurantFolderPage()),
-			1 => const PageSwitcher(nextPage: FeedPage(cameFromProfile: true)),
+			1 => const PageSwitcher(nextPage: RestaurantFolderPage()),
 			2 => const PageSwitcher(nextPage: RestaurantFolderPage()),
 			_ => const PageSwitcher(nextPage: RestaurantFolderPage()),
 		};
@@ -106,8 +106,8 @@ class ProfileNavigationBar extends StatelessWidget
 			children:
 			[
 				ProfileGalleryItem(icon: Icons.restaurant_menu_rounded, label: "Restaurants", context: context, index: 0),
-				ProfileGalleryItem(icon: Icons.home, label: "XXX", context: context, index: 1),
-				ProfileGalleryItem(icon: Icons.report_sharp, label: "YYY", context: context, index: 2),
+				ProfileGalleryItem(icon: Icons.cancel_outlined, label: "XXX", context: context, index: 1),
+				ProfileGalleryItem(icon: Icons.cancel_outlined, label: "YYY", context: context, index: 2),
 			],
 		);
 	}
@@ -137,9 +137,7 @@ class ProfileGalleryItem extends StatelessWidget
 			(
 				icon,
 				semanticLabel: label,
-				size: itemSelected == true ? 32 : 24,
-				weight: itemSelected == true ? 600 : 400,
-				grade: itemSelected == true ? 100 : 50,
+				size: itemSelected == true ? 40 : 24,
 			)
 		);
 	}

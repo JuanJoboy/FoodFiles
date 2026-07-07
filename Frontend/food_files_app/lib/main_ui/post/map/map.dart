@@ -153,7 +153,7 @@ class Map extends StatelessWidget
 
 						final lng = tapContext.point.coordinates.lng.toDouble();
 						final lat = tapContext.point.coordinates.lat.toDouble();
-						context.read<MapNotifier>().flyCameraTo(lng, lat, zoom: 18, duration: 1000);
+						context.read<MapNotifier>().flyCameraTo(lng, lat, zoom: 18, duration: 6000);
 
 						context.read<MapNotifier>().getInfoFromTap(lng, lat).then((location) // Since the method isn't async, I use .then() to do the rest of the functionality
 						{

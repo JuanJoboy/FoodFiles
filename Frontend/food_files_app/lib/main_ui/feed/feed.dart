@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:food_files_app/main_ui/post/post.dart';
+import 'package:food_files_app/main_ui/post/post_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart' as custom_carousel;
 import 'package:flutter/material.dart';
