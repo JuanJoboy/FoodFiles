@@ -17,88 +17,100 @@ samples, guidance on mobile development, and a full API reference.
 
 # Wireless Android Debugging for Flutter
 
-This guide outlines the steps required to bypass Windows environment path restrictions and configure wireless debugging on a physical Android device using absolute file paths.
+This guide details the complete process for setting up standalone Android SDK Platform-Tools, configuring the system PATH, and establishing a wireless ADB connection without using cables.
 
 ---
 
-## 🛠️ Prerequisites
+## Step 1: Download and Extract Platform-Tools
 
-* An Android device and development computer connected to the **same Wi-Fi network**.
-* A reliable USB data-sync cable (charging-only cables will not work).
+1. Download the official **SDK Platform-Tools for Windows** directly from Google:
+* URL: `https://developer.android.com/tools/releases/platform-tools`
 
----
 
-## 📱 Step 1: Device Configuration
+2. Extract the downloaded ZIP file to a permanent, easily accessible directory on your local drive.
+* Target path example: `C:\Users\username\Android\platform-tools`
 
-1. Navigate to **Settings** ➔ **About Phone**.
-2. Tap **Build Number** exactly **7 times** to unlock Developer Options.
-3. Return to the main settings menu, locate **Developer Options**, and enable **USB Debugging**.
-4. Navigate to **Wi-Fi Settings**, select your active connection, and locate the device **IP Address** (e.g., `192.168.1.45`). Record this address for later use.
+
 
 ---
 
-## 🔌 Step 2: Initial Hardware Tethering
+## Step 2: Add ADB to Windows System PATH
 
-1. Connect your Android device to the computer using the USB cable.
-2. Confirm the security prompt on your mobile screen: check **"Always allow from this computer"** and select **Allow**.
+To execute `adb` commands from any terminal window, the directory must be added to the system Environment Variables.
 
----
-
-## 💻 Step 3: Initialize Wireless Protocol
-
-Open the integrated terminal in VS Code (`Ctrl + ~`) and execute the following commands sequentially. Replace `{USER}` with your local Windows profile folder name (e.g., `juanj_f3u9fci`).
-
-### 1. Initialize TCP/IP Mode
-
-Instruct the mobile device to listen for wireless debugging instructions on port 5555:
-
-```cmd
-C:\Users\{USER}\AppData\Local\Android\Sdk\platform-tools\adb.exe tcpip 5555
+1. Press the **Windows Key**, type `env`, and select **Edit the system environment variables**.
+2. In the System Properties window, click the **Environment Variables...** button at the bottom.
+3. Under the **System variables** section, locate the variable named `Path`, select it, and click **Edit...**.
+4. Click **New** on the right side of the window.
+5. Paste the absolute path to your extracted folder: `C:\Android\platform-tools`
+6. Click **OK** on all open windows to save the changes.
+7. Open a new Terminal window and run the following command to verify the installation:
+```terminal
+adb --version
 
 ```
 
-> **Expected Output:** `restarting in TCP mode port: 5555`
 
-⚠️ **Disconnect the USB cable from your phone now before executing the next command.**
-
-### 2. Establish Network Connection
-
-Force the wireless connection over your local network using the IP address noted in Step 1:
-
-```cmd
-C:\Users\{USER}\AppData\Local\Android\Sdk\platform-tools\adb.exe connect 192.168.1.45:5555
-
-```
-
-> **Expected Output:** `connected to 192.168.1.45:5555`
+*The terminal must return the Android Debug Bridge version number.*
 
 ---
 
-## 🔍 Step 4: Verification & Diagnostic Port Routing
+## Step 3: Prepare the Android Device
 
-### 1. Verify Active Wireless Nodes
-
-Confirm that Flutter detects the device over the wireless network:
-
-```cmd
-C:\Users\{USER}\AppData\Local\Android\Sdk\platform-tools\adb.exe devices
-
-```
-
-### 2. Fix Flutter VM Service Protocol Drops
-
-If your debug session crashes due to an `HttpException` or unexpected connection termination, manually map the Flutter engine's diagnostic port back to your local workspace:
-
-```cmd
-C:\Users\{USER}\AppData\Local\Android\Sdk\platform-tools\adb.exe forward tcp:58219 tcp:58219
-
-```
+1. Open **Settings** on the Android device and navigate to **About Phone**.
+2. Locate the **Build Number** and tap it 7 times consecutively until the notification "You are now a developer!" appears.
+3. Return to the main **Settings** menu, select **System**, and open **Developer Options**.
+4. Scroll down to the debugging section and enable **Wireless Debugging**.
+5. Tap directly on the text **"Wireless Debugging"** to open its dedicated settings page.
 
 ---
 
-## 🚀 Execution
+## Step 4: Pair the Device via Terminal
 
-1. Verify that your physical phone is selected as the active target in the bottom-right status bar of VS Code.
-2. Navigate to the **Run and Debug** tab in the sidebar (`Ctrl + Shift + D`).
-3. Ensure the configuration dropdown is set to **Flutter**.
-4. Click **Start Debugging** (or press **F5**) to compile and launch your app wirelessly.
+1. On the Wireless Debugging page, tap **Pair device with pairing code**. A pop-up dialog will display three specific values:
+* **Wi-Fi pairing code** (6-digit number)
+* **IP address & Port** (e.g., `10.130.4.250:43211`)
+
+
+2. Open Terminal on the computer and execute the pairing command using the IP and port shown on that specific pop-up dialog:
+```terminal
+adb pair <PAIRING_IP>:<PAIRING_PORT>
+
+```
+
+
+*Example:* `adb pair 10.130.4.250:43211`
+3. The terminal will prompt: `Enter pairing code:`. Type the 6-digit code from the phone and press **Enter**.
+4. The terminal must display: `Successfully paired to <IP>:<PORT>`.
+
+---
+
+## Step 5: Connect to the Device
+
+1. Dismiss the pairing pop-up dialog on the phone by tapping **Cancel** or **OK** to return to the main Wireless Debugging page.
+2. Locate the section labeled **IP address & Port** directly under the main toggle switch.
+3. Note the new port number. This port is distinct from the pairing port used in Step 4.
+4. In the Terminal window, execute the connection command using the main page IP and connection port:
+```terminal
+adb connect <MAIN_PAGE_IP>:<CONNECTION_PORT>
+
+```
+
+
+*Example:* `adb connect 10.130.4.250:36445`
+5. The terminal must display: `connected to <IP>:<PORT>`.
+
+---
+
+## Step 6: Verify and Run in VS Code
+
+1. Confirm the wireless connection is active by listing all connected target machines:
+```terminal
+adb devices
+
+```
+
+
+*The terminal output must display the device IP and connection port listed as `device`.*
+2. Open VS Code.
+3. Press the play button to Run & Debug.
