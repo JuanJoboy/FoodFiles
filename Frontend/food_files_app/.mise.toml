@@ -9,6 +9,7 @@ supabase = "latest"
 SUPABASE_URL = "http://localhost:54321"
 
 [tasks]
+# mise exec -- COMMAND is also useful
 # Shortcut to spin up your local containers
 up = "supabase start"
 # Shortcut to stop containers and clear system RAM memory
