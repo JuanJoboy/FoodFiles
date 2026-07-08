@@ -1,0 +1,25 @@
+{
+    "recommendations": [
+        // SOFTWARE
+        "dart-code.flutter",
+        "jeroen-meijer.pubspec-assist",
+        "redhat.vscode-yaml",
+        "editorconfig.editorconfig",
+        "tombi-toml.tombi",
+        "hverlin.mise-vscode",
+        "supabase.vscode-supabase-extension",
+        "ms-ossdata.vscode-pgsql",
+
+        // QOL
+        "formulahendry.code-runner",
+        "bierner.emojisense", 
+        "aaron-bond.better-comments",
+        "wayou.vscode-todo-highlight",
+        "esbenp.prettier-vscode",
+        "mindaro-dev.file-downloader",
+        
+        // GIT
+        "github.vscode-pull-request-github",
+        "codezombiech.gitignore",
+    ]
+}

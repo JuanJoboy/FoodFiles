@@ -1,0 +1,10 @@
+[tools]
+# Pin the exact versions your team must use
+flutter = "latest"
+java = "latest"
+# supabase-cli = "latest"
+# python = "latest"
+
+[env]
+# Injects environment variables directly into your terminal session automatically
+# SUPABASE_URL = "http://127.0.0.1:54321"
