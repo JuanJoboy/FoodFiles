@@ -33,7 +33,7 @@
               />
             <meta-data
               android:name="com.mapbox.token"
-              android:value="@string/ACCESS_TOKEN" />
+              android:value="@string/mapbox_access_token" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
