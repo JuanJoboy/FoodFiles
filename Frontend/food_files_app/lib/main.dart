@@ -1,6 +1,7 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
 import "dart:io";
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:food_files_app/app_updater.dart";
 import "package:food_files_app/main_ui/feed/feed.dart";
@@ -17,11 +18,30 @@ import "package:food_files_app/utilities/settings.dart";
 import "package:food_files_app/utilities/utilities.dart";
 import "package:provider/provider.dart"; // A state management package. It allows data (like the list of favorites) to be shared across different screens without manually passing it through every constructor.
 // import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main()
+void main() async
 {
 	// Map Box and camera stuff
 	WidgetsFlutterBinding.ensureInitialized();
+
+	await dotenv.load(fileName: ".env");
+
+	String supabaseUrl = 'http://127.0.0.1:54321';
+
+	// Necessary if using a real device for emulating
+	if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS))
+	{
+		final String localIP = dotenv.env['LOCAL_COMPUTER_IP'] ?? '127.0.0.1';
+		supabaseUrl = 'http://$localIP:54321'; 
+	}
+
+	await Supabase.initialize
+	(
+		url: supabaseUrl,
+		publishableKey: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
+	);
 
 	runApp
 	(

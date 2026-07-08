@@ -1,10 +1,22 @@
-# FoodFiles
+# Food Files Documentation
 
-## Non-Git Tracked Files
-- FoodFiles\Frontend\food_files_app\android\app\src\main\res\values\mapbox_access_token.xml
-- FoodFiles\.vscode\launch.json
+---
 
-## MISE
+<details>
+<summary><h3 style="display: inline;">Non-Git Tracked Files</h3></summary>
+
+Ask me about these files:
+- `FoodFiles\Frontend\food_files_app\android\app\src\main\res\values\mapbox_access_token.xml`
+- `FoodFiles\.vscode\launch.json`
+- `FoodFiles\Frontend\food_files_app\.env`
+
+</details>
+
+---
+
+<details>
+<summary><h3 style="display: inline;">MISE</h3></summary>
+
 ### Team Environment Onboarding Guide
 
 We are using **`mise`** to completely automate our development environments. This ensures all three of us are using the exact same versions of Flutter, Java, and local configurations without manually installing tools or breaking paths.
@@ -13,7 +25,7 @@ Follow these steps once to configure your machine.
 
 ---
 
-### Step 1: Install `mise` on your laptop
+### Step 1: Install `mise` on your computer
 
 Open your local terminal interface and run the installation script for your operating system:
 
@@ -32,7 +44,7 @@ brew install mise
 
 
 
-*Note for Windows users: Add this to your System Variables Environment Path - C:\Users\USERNAME\AppData\Local\Microsoft\WinGet\Links - Then lose and completely restart your terminal window.*
+*Note for Windows users: Add this to your System Variables Environment Path - C:\Users\USERNAME\AppData\Local\Microsoft\WinGet\Links - Then close and completely restart your terminal window.*
 
 ---
 
@@ -86,8 +98,8 @@ source ~/.zshrc
 ---
 
 ### Step 4: Install All Recommended Extensions
-If the mise doesn't automatically install the techs, then run in FoodFiles\Frontend\food_files_app:
-```powershell
+If mise doesn't automatically install the technologies we'll be using, then run in `FoodFiles\Frontend\food_files_app`:
+```cmd
 mise install
 
 ```
@@ -97,13 +109,12 @@ mise install
 > *"This repository contains recommended extensions."*
 2. Click **Install All**.
 
-
-
-# Supabase Local Development Setup Guide
-
-This guide covers installing, configuring, and managing a local Supabase infrastructure using Docker. Every team member must follow these steps to ensure environment parity.
+</details>
 
 ---
+
+<details>
+<summary><h3 style="display: inline;">Supabase</h3></summary>
 
 ## Prerequisites & Installation
 
@@ -119,22 +130,7 @@ The Supabase CLI uses Docker to orchestrate the local database engine and its pe
 2. Run the installer and complete the setup wizard.
 3. Launch Docker Desktop and verify the daemon is running in the background.
 
-### Step 2: Initialize the Supabase Layout
-
-Navigate to the root directory of your project (`food_files_app`) in your terminal and initialize the configuration:
-
-```bash
-mise exec -- supabase init
-
-```
-
-**Output Artifacts:**
-This command creates a `/supabase` directory at your project root containing:
-
-* `config.toml`: Holds local infrastructure rules, including JWT secrets, API port mappings, and authentication toggles.
-* `/migrations`: Stores SQL migration files to keep database schemas synchronized across the team.
-
-### Step 3: Start the Infrastructure
+### Step 2: Start the Infrastructure
 
 Ensure Docker Desktop is active, then execute the startup command:
 
@@ -185,3 +181,149 @@ The local Supabase environment runs as a decoupled cluster of individual Docker 
 | **PostgreSQL** | `54322` | Core database engine. |
 | **Supabase Studio** | `54323` | Web-based management dashboard. |
 | **Inbucket** | `54324` | Local SMTP server to intercept and test authentication emails. |
+
+</details>
+
+---
+
+<details>
+<summary><h3 style="display: inline;">Wireless Android Debugging</h3></summary>
+
+# Wireless Android Debugging for Flutter
+
+This guide details the complete process for setting up standalone Android SDK Platform-Tools, configuring the system PATH, and establishing a wireless ADB connection without using cables.
+
+---
+
+## Step 1: Download and Extract Platform-Tools
+
+1. Download the official **SDK Platform-Tools for Windows** directly from Google:
+* URL: `https://developer.android.com/tools/releases/platform-tools`
+
+
+2. Extract the downloaded ZIP file to a permanent, easily accessible directory on your local drive.
+* Target path example: `C:\Users\username\Android\platform-tools`
+
+
+
+---
+
+## Step 2: Add ADB to Windows System PATH
+
+To execute `adb` commands from any terminal window, the directory must be added to the system Environment Variables.
+
+1. Press the **Windows Key**, type `env`, and select **Edit the system environment variables**.
+2. In the System Properties window, click the **Environment Variables...** button at the bottom.
+3. Under the **System variables** section, locate the variable named `Path`, select it, and click **Edit...**.
+4. Click **New** on the right side of the window.
+5. Paste the absolute path to your extracted folder: `C:\Android\platform-tools`
+6. Click **OK** on all open windows to save the changes.
+7. Open a new Terminal window and run the following command to verify the installation:
+```terminal
+adb --version
+
+```
+
+
+*The terminal must return the Android Debug Bridge version number.*
+
+---
+
+## Step 3: Prepare the Android Device
+
+1. Open **Settings** on the Android device and navigate to **About Phone**.
+2. Locate the **Build Number** and tap it 7 times consecutively until the notification "You are now a developer!" appears.
+3. Return to the main **Settings** menu, select **System**, and open **Developer Options**.
+4. Scroll down to the debugging section and enable **Wireless Debugging**.
+5. Tap directly on the text **"Wireless Debugging"** to open its dedicated settings page.
+
+---
+
+## Step 4: Pair the Device via Terminal
+
+1. On the Wireless Debugging page, tap **Pair device with pairing code**. A pop-up dialog will display three specific values:
+* **Wi-Fi pairing code** (6-digit number)
+* **IP address & Port** (e.g., `10.130.4.250:43211`)
+
+
+2. Open Terminal on the computer and execute the pairing command using the IP and port shown on that specific pop-up dialog:
+```terminal
+adb pair <PAIRING_IP>:<PAIRING_PORT>
+
+```
+
+
+*Example:* `adb pair 10.130.4.250:43211`
+3. The terminal will prompt: `Enter pairing code:`. Type the 6-digit code from the phone and press **Enter**.
+4. The terminal must display: `Successfully paired to <IP>:<PORT>`.
+
+---
+
+## Step 5: Connect to the Device
+
+1. Dismiss the pairing pop-up dialog on the phone by tapping **Cancel** or **OK** to return to the main Wireless Debugging page.
+2. Locate the section labeled **IP address & Port** directly under the main toggle switch.
+3. Note the new port number. This port is distinct from the pairing port used in Step 4.
+4. In the Terminal window, execute the connection command using the main page IP and connection port:
+```terminal
+adb connect <MAIN_PAGE_IP>:<CONNECTION_PORT>
+
+```
+
+
+*Example:* `adb connect 10.130.4.250:36445`
+5. The terminal must display: `connected to <IP>:<PORT>`.
+
+---
+
+## Step 6: Verify and Run in VS Code
+
+1. Confirm the wireless connection is active by listing all connected target machines:
+```terminal
+adb devices
+
+```
+
+
+*The terminal output must display the device IP and connection port listed as `device`.*
+2. Open VS Code.
+3. Press the play button to Run & Debug.
+
+</details>
+
+---
+
+<details>
+<summary><h3 style="display: inline;">Supabase & Local Hosting</h3></summary>
+
+## Supabase Local Hosting Setup
+
+To test the application on physical mobile devices or distinct local workstations, you must route API calls through your computer's local network IP address rather than `localhost`.
+
+### 1. Find Your Local Network IP Address
+
+Your mobile device needs your laptop's specific internal IPv4 address to communicate over your shared Wi-Fi network. Find your address using your operating system's terminal interface:
+
+* **Windows (PowerShell / CMD):** Run `ipconfig` and look for the **IPv4 Address** under your active wireless or ethernet adapter (typically starting with `192.168.` or `10.`).
+* **macOS / Linux (Terminal):** Run `ipconfig getifaddr en0` (Mac) or `ip addr show` (Linux) to print your active local routing assignment directly.
+
+---
+
+### 2. Configure the Environment Variable
+
+Local configurations are managed through an untracked environment file to prevent team layout conflicts in the shared Git history.
+
+1. Navigate to the frontend application configuration folder:
+```bash
+cd FoodFiles\Frontend\food_files_app
+
+```
+
+2. Create a `.env` file
+
+3. Add in the following line, with XXX being your computer's real IP:
+`LOCAL_COMPUTER_IP=XXX`
+
+</details>
+
+---

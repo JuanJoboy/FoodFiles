@@ -48,6 +48,9 @@ dependencies:
   carousel_slider: ^5.0.0
   shared_preferences: ^2.5.5
   in_app_update_flutter: ^3.0.0
+  supabase_flutter: ^2.16.0
+  flutter_dotenv: ^6.0.1
+  supabase_codegen: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +77,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
