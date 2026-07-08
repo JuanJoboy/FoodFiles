@@ -9,6 +9,7 @@
         "hverlin.mise-vscode",
         "supabase.vscode-supabase-extension",
         "ms-ossdata.vscode-pgsql",
+        "ms-azuretools.vscode-docker",
 
         // QOL
         "formulahendry.code-runner",

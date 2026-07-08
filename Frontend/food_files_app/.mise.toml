@@ -1,10 +1,17 @@
 [tools]
-# Pin the exact versions your team must use
-flutter = "latest"
-java = "latest"
-# supabase-cli = "latest"
+flutter = "3" # Forces mise to always download the newest version, but strictly limits it to 3.x releases
+java = "corretto-17" # Forces mise to fetch the newest Java 17 release without jumping to Java 21+
+supabase = "latest"
 # python = "latest"
 
 [env]
 # Injects environment variables directly into your terminal session automatically
-# SUPABASE_URL = "http://127.0.0.1:54321"
+SUPABASE_URL = "http://localhost:54321"
+
+[tasks]
+# Shortcut to spin up your local containers
+up = "supabase start"
+# Shortcut to stop containers and clear system RAM memory
+down = "supabase stop"
+# Rebuilds database layout cleanly matching your migrations folder
+reset = "supabase db reset"
