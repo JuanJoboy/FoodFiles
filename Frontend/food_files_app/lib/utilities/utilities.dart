@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Utils
 {
@@ -25,6 +26,35 @@ class Utils
 		{
 			return Color.lerp(const Color.fromARGB(255, 152, 27, 27), const Color.fromARGB(255, 27, 152, 5), (rating / 10)); // Slightly duller, so that it doesn't look weirdly neon on dark mode
 		}
+	}
+
+	static double screenWidth(BuildContext context)
+	{
+		return MediaQuery.sizeOf(context).width;
+	}
+}
+
+class FoodFilesTitle extends StatelessWidget
+{
+	const FoodFilesTitle({super.key});
+
+	@override
+	Widget build(BuildContext context)
+	{
+		return Text
+		(
+			"Food Files",
+			textAlign: TextAlign.center,
+			style: GoogleFonts.allura
+			(
+				textStyle: const TextStyle
+				(
+					fontWeight: FontWeight.bold,
+					fontSize: 50,
+					letterSpacing: 2
+				)
+			)
+		);
 	}
 }
 

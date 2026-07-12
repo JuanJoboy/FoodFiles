@@ -1,0 +1,91 @@
+# Requirements
+
+## Functional Requirements
+- Be perfectly usable on iOS & Android
+- Login:
+    - OAuth Login:
+        - Google
+        - Microsoft
+        - Apple
+        - Facebook
+    - Non-OAuth Login:
+        - Email
+        - Password
+- Regular login with email / username and password
+    - Account creation screen where you can set:
+        - Username - Required & Unique
+        - Profile Picture - Optional
+        - Bio - Optional
+        - Account Privacy - Required | Public or Private
+        - Save Password
+        - Permissions:
+            - Location
+            - Camera & Microphone
+            - Photos & Videos
+- In-App prompt to install the latest update
+- Scrollable list of posts taken from people in the user's Following List
+    - Post's displayed will be posts from up to 7 days ago
+    - Posts must have likes, comments, favourite button, and should be openable. When adding to favourites, tiktok-based collections should be able to be made
+        - If a post has text that's too long, it will fade out in the feed
+        - When a post is opened, it must display the full description in a scrollable body. The body must not expand and take up more space.
+        - Opening a post can be done by clicking on the description body, and takes the user to the actual post, with the comments directly underneath
+            - Clicking on the comment button should take the user directly to the comment section
+            - The comment section will only support text and emojis
+- A section to create a post:
+    - Must have a smooth map that always loads the user's current location immediately if their permission is turned on
+    - Must have a functioning search bar that works similarly to Google Map's search. It should find locations nearby that match the user's search
+    - The Map's lighting must match the user's current time (Has a dusk aesthetic around 6pm IRL)
+    - Tapping on a location is how a post is progressed further. The tap parses what was pressed for it's name and location (McDonald's, Cannington). This feature should be made very obvious to the user as it is an extremely core aspect of the app
+    - The user will then be able to input: what day and time they had their meal, as well as a title for their post, what food they had, a description of the meal, how much it costed, if it was discounted and how much it costed, the ability to take a photo as well as upload from gallery, and their final rating out of 10.
+        - Date - Required
+        - Time - Optional
+        - Restaurant - Parsed & Immutable
+        - Location - Parsed & Immutable
+        - Title - Required
+        - Food - Required
+        - Description - Required
+        - Price - Required if not discounted | Optional if discounted
+        - Discount - Optional if not discounted | Discounted price required if discounted
+        - Rating - Required
+        - Picture - Optional
+        - Post Visibility - Required | Public / Friends Only / Private
+- An Explore page that shows the posts of anyone with a public account
+    - Filters will be available here to filter what is shown on the page
+        - Date
+        - Restaurant
+        - Food
+        - Price
+        - Rating
+        - Other filters
+- A profile page that displays the user's name, profile picture, number of posts, followers, following, and bio
+    - Username, profile picture, and bio must be editable
+    - Accounts must be followable
+    - Gallery with tabs will be somewhere on the page:
+        - 1st Tab - All Posts in the regular folder system - Restaurant -> Location -> Post
+            - Folders will default to the name of the restaurant, but can be edited to something else
+            - Inside the locations page, a plus sign should be available (most likely bottom right corner) that when pressed creates a new post with the restaurant and location already parsed in
+        - 2nd Tab - Custom List section where the user can add a list of posts and give it the following qualities:
+            - List Name - Required
+            - Description - Optional
+            - Posts - Required
+            - Public / Friends Only / Private - Required
+        - 3rd Tab - An Eatlist (a watchlist but for foods). Users can add foods they want to eat and it will be displayed in the Restaurant -> Location -> Food, format
+        - 5th Tab - Favourited Posts should be displayed in their categories
+    - Settings
+        - Password Reset
+        - Account Privacy: Public or Private
+        - Device Permissions:
+            - Location
+            - Camera & Microphone
+            - Photos & Videos
+        - About:
+            - Privacy Policy
+            - Terms of Use
+
+## Potential FR's
+- Year folders and Month folders within the location folder that puts the reviews within the years and months they were made
+- Posts can be downloaded into PNG form
+- 4th Tab - Archives area where all posts and whatnot that were archived are displayed
+
+## MISC
+- Put burger buns above and below the stuff on the login page

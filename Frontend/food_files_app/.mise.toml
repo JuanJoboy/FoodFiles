@@ -14,5 +14,7 @@ SUPABASE_URL = "http://localhost:54321"
 up = "supabase start"
 # Shortcut to stop containers and clear system RAM memory
 down = "supabase stop"
+# Outputs active API ports, database connection keys, and states
+status = "supabase status"
 # Rebuilds database layout cleanly matching your migrations folder
 reset = "supabase db reset"

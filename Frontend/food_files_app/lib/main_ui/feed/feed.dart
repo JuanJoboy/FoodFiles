@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:carousel_slider/carousel_slider.dart' as custom_carousel;
 import 'package:flutter/material.dart';
 import 'package:food_files_app/utilities/utilities.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class FeedPage extends StatelessWidget
@@ -48,14 +47,11 @@ class RenderedPage extends StatelessWidget
 	{
 		final AllPosts list = context.watch<AllPosts>();
 
-		final ThemeData theme = Theme.of(context);
-		final TextStyle? textStyle = theme.textTheme.displaySmall;
-
 		return Column
 		(
 			children:
 			[
-				cameFromProfile == false ? Text("Food Files", textAlign: TextAlign.center, style: GoogleFonts.allura(textStyle: textStyle?.copyWith(fontWeight: FontWeight.bold))) : const SizedBox.shrink(),
+				cameFromProfile == false ? const FoodFilesTitle() : const SizedBox.shrink(),
 				Expanded // Below the food files card is a list of every post within an expanded widget so that it fits within the phone and doesn't overflow. Inside a Column, a ListView (which has infinite height) will crash the app with a "Vertical viewport was given unbounded height" error unless wrapped in Expanded.
 				(
 					child: Feed(list: list, restaurantName: restaurantName, locationName: locationName)

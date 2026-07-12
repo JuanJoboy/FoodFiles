@@ -164,10 +164,10 @@ Use these commands for daily environment management:
 
 | Command | Action | Use Case |
 | --- | --- | --- |
-| `mise exec -- supabase start` | Boots all local backend containers. | Start of work session. |
-| `mise exec -- supabase stop` | Halts the container cluster. | End of work session to free up system RAM. |
-| `mise exec -- supabase status` | Outputs active API ports, database connection keys, and states. | Verifying environment health. |
-| `mise exec -- supabase db reset` | Resets the local database and re-runs all migrations in `/migrations`. | Reverting bad local data states or syncing with upstream schema changes. |
+| `mise run up` | Boots all local backend containers. | Start of work session. |
+| `mise run down` | Halts the container cluster. | End of work session to free up system RAM. |
+| `mise run status` | Outputs active API ports, database connection keys, and states. | Verifying environment health. |
+| `mise run reset` | Resets the local database and re-runs all migrations in `/migrations`. | Reverting bad local data states or syncing with upstream schema changes. |
 
 ---
 

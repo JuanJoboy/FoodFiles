@@ -3,7 +3,8 @@ import "dart:io";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
-import "package:food_files_app/app_updater.dart";
+import "package:flutter/services.dart";
+import "package:food_files_app/system/app_updater.dart";
 import "package:food_files_app/main_ui/feed/feed.dart";
 import "package:food_files_app/main_ui/post/components/post_description_controller.dart";
 // import "package:food_files_app/main_ui/post/post.dart";
@@ -13,6 +14,7 @@ import "package:food_files_app/main_ui/post/post_controller.dart";
 import "package:food_files_app/main_ui/profile/folders/location_folder.dart";
 import "package:food_files_app/main_ui/profile/profile.dart";
 import "package:food_files_app/main_ui/profile/folders/restaurant_folder.dart";
+import "package:food_files_app/system/login/login_page.dart";
 import "package:food_files_app/utilities/colours.dart";
 import "package:food_files_app/utilities/settings.dart";
 import "package:food_files_app/utilities/utilities.dart";
@@ -43,12 +45,22 @@ void main() async
 		publishableKey: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
 	);
 
+	// Force device to stay in portrait mode
+	await SystemChrome.setPreferredOrientations
+	(
+		[
+			DeviceOrientation.portraitUp,
+			DeviceOrientation.portraitDown,
+		]
+	);
+
 	runApp
 	(
 		MultiProvider // Allows me to have multiple ChangeNotifiers
 		(
 			providers:
 			[
+				ChangeNotifierProvider(create: (context) => LoginNotifier()),
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ProfileNavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ThemeNotifier()),
@@ -154,7 +166,7 @@ class MyApp extends StatelessWidget
 				);
 			},
 			themeMode: context.watch<ThemeNotifier>().currentUnit.value,
-			home: const MyHomePage(), // The home page is immediately set to the feed because the index is set to 0 immediately
+			home: const LoginPage()
 		);
 	}
 }
