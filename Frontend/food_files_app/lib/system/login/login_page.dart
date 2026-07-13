@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:food_files_app/main.dart';
 import 'package:food_files_app/system/login/non_oauth/non_auth_login.dart';
 import 'package:food_files_app/system/login/oauth/auth_login.dart';
 import 'package:food_files_app/utilities/utilities.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget
 {
@@ -16,47 +15,61 @@ class LoginPage extends StatefulWidget
 
 class _LoginPageState extends State<LoginPage>
 {
-	@override
-	Widget build(BuildContext context)
-	{
-		final double sidePadding = Utils.screenWidth(context) / 6; // Gets the width of the screen and divides it by 6, then applies it as padding to the sides of the input fields
+    @override
+    Widget build(BuildContext context)
+    {
+        final double sidePadding = Utils.screenWidth(context) / 6;
 
-		return LayoutBuilder
-		(
-			builder: (context, constraints)
-			{
-				return Scaffold
-				(
-					body: SafeArea
-					(
-						child: Padding
-						(
-							padding: EdgeInsets.symmetric(horizontal: sidePadding),
-							child: const Column
-							(
-								mainAxisSize: MainAxisSize.min,
-								children:
-								[
-									Padding(padding: EdgeInsetsGeometry.directional(top: 50)),
-									Header(),
-									Padding(padding: EdgeInsetsGeometry.directional(bottom: 35)),
+        return LayoutBuilder
+        (
+            builder: (context, constraints)
+            {
+                return Scaffold
+                (
+                    body: SafeArea
+                    (
+                        child: SingleChildScrollView
+                        (
+                            physics: const BouncingScrollPhysics(),
+                            child: ConstrainedBox
+                            (
+                                constraints: BoxConstraints
+                                (
+                                    minHeight: constraints.maxHeight,
+                                ),
+                                child: IntrinsicHeight
+                                (
+                                    child: Padding
+                                    (
+                                        padding: EdgeInsets.symmetric(horizontal: sidePadding),
+                                        child: const Column
+                                        (
+                                            children: 
+                                            [
+                                                Spacer(flex: 1),
+                                                Header(),
+                                                Spacer(flex: 1),
 
-									OAuthLogin(),
+                                                OAuthLogin(),
 
-									BreakLineText(),
-									Padding(padding: EdgeInsetsGeometry.directional(bottom: 25)),
+                                                Spacer(flex: 1),
+                                                BreakLineText(),
+                                                Spacer(flex: 1),
 
-									NonOAuthLogin()
-								],
-							),
-						)
-					)
-				);
-			}
-		);
-	}
+                                                NonOAuthLogin(),
+                                                Spacer(flex: 4),
+                                            ],
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                );
+            },
+        );
+    }
 }
-
 class Header extends StatelessWidget
 {
 	const Header({super.key});
@@ -142,7 +155,22 @@ class LoginButton extends StatelessWidget
 						color: buttonColor,
 						child: InkWell
 						(
-							onTap: buttonFunctionality,
+							onTap: () async
+							{
+								try
+								{
+									await buttonFunctionality();
+
+									if(context.mounted)
+									{
+										await context.read<LoginNotifier>().login(context);
+									}
+								}
+								catch (e)
+								{
+									debugPrint(e.toString());
+								}
+							},
 							child: SizedBox
 							(
 								height: 40,
@@ -203,16 +231,20 @@ class ButtonHelper extends StatelessWidget
 
 						const SizedBox(width: 16),
 
-						Text
+						Expanded
 						(
-							buttonText,
-							style: const TextStyle
+							child: Text
 							(
-								fontSize: 20,
-								fontWeight: FontWeight.bold,
-								color: Colors.white,
-							),
-						),
+								buttonText,
+								style: const TextStyle
+								(
+									fontSize: 16,
+									fontWeight: FontWeight.bold,
+									color: Colors.white,
+									overflow: TextOverflow.ellipsis
+								),
+							)
+						)
 					],
 				),
 			);
@@ -225,14 +257,23 @@ class LoginNotifier extends ChangeNotifier
 	// PRIVATE FIELDS
 	final TextEditingController _emailController = TextEditingController();
 	final TextEditingController _passwordController = TextEditingController();
+	String _emailFieldMsg = "Email";
 	bool _passwordVisible = false;
 
 	// GETTERS
 	TextEditingController get emailController => _emailController;
 	TextEditingController get passwordController => _passwordController;
+	String get emailFieldMsg => _emailFieldMsg;
 	bool get passwordVisible => _passwordVisible;
 
 	// SETTERS
+	void setEmailFieldMsg(String emailFieldMsg)
+	{
+		_emailFieldMsg = emailFieldMsg;
+		notifyListeners();
+	}
+
+	
 	void setPasswordVisible(bool passwordVisible)
 	{
 		_passwordVisible = passwordVisible;

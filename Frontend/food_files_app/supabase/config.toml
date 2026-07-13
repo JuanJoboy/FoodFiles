@@ -336,7 +336,7 @@ email_optional = false
 
 [auth.external.google]
 enabled = true
-client_id = "1045387728460-rmoiiakugmgljm6v5ig61qd07hvaooo6.apps.googleusercontent.com,1045387728460-7b3rkkdn5bh75cflot7srjsbp7eqkhg7.apps.googleusercontent.com,1045387728460-ektedsv4e6cofcm81cd57g0f2ik9pu3h.apps.googleusercontent.com" # Web, Android, iOS
+client_id = "1045387728460-vfaekc3e8ulqd2rchdk6ff9aisnh700s.apps.googleusercontent.com,1045387728460-7b3rkkdn5bh75cflot7srjsbp7eqkhg7.apps.googleusercontent.com,1045387728460-ektedsv4e6cofcm81cd57g0f2ik9pu3h.apps.googleusercontent.com" # Web, Android, iOS
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
 skip_nonce_check = true
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_files_app/system/login/login_page.dart';
+import 'package:food_files_app/system/login/non_oauth/password_reset.dart';
+import 'package:food_files_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
 class NonOAuthLogin extends StatefulWidget
@@ -20,34 +22,61 @@ class _NonOAuthLoginState extends State<NonOAuthLogin>
 			children:
 			[
 				const EmailField(),
-				const Padding(padding: EdgeInsetsGeometry.directional(top: 25)),
+				const SizedBox(height: 16),
 				const PasswordField(),
+				const SizedBox(height: 8),
 
-				const Padding(padding: EdgeInsetsGeometry.directional(top: 15)),
-				const Row
+				Row
 				(
 					mainAxisAlignment: MainAxisAlignment.end,
 					children: 
 					[
-						BlueText(blueText: "Forgot Password?", signUpText: false)
+						BlueText
+						(
+							nextPage: () => forgotPassword(),
+							blueText: "Forgot Password?",
+							signUpText: false
+						)
 					],
 				),
 
-				const Padding(padding: EdgeInsetsGeometry.directional(top: 25)),
+				const SizedBox(height: 24),
 				LoginButton
 				(
-					buttonFunctionality: () async
-					{
-						await context.read<LoginNotifier>().login(context);
-					},
+					buttonFunctionality: () async => await login(),
+					buttonColor: Colors.blue,
 					buttonText: "Log In",
-					buttonColor: Colors.blue
 				),
 
-				const Padding(padding: EdgeInsetsGeometry.directional(top: 25)),
-				const BlueText(blueText: "Sign Up", signUpText: true)
+				const SizedBox(height: 16),
+				BlueText
+				(
+					nextPage: () => signUp(),
+					blueText: "Sign Up",
+					signUpText: true
+				)
 			],
 		);
+	}
+
+	Future<void> login() async
+	{
+
+	}
+
+	Future<void> forgotPassword()
+	{
+		return Navigator.pushAndRemoveUntil
+		(
+			context,
+			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: ResetPassword())),
+			(Route<dynamic> route) => false,
+		);
+	}
+
+	void signUp()
+	{
+
 	}
 }
 
@@ -67,7 +96,8 @@ class EmailField extends StatelessWidget
 				(
 					borderRadius: BorderRadius.circular(5)
 				),
-				hintText: "Email",
+				hintText: context.watch<LoginNotifier>().emailFieldMsg,
+				hintStyle: const TextStyle(color: Colors.red),
 				filled: true,
 			),
 			controller: context.read<LoginNotifier>().emailController,
@@ -114,40 +144,45 @@ class PasswordField extends StatelessWidget
 
 class BlueText extends StatelessWidget
 {
+	final Function() nextPage;
 	final String blueText;
 	final bool signUpText;
 
-	const BlueText({super.key, required this.blueText, required this.signUpText});
+	const BlueText({super.key, required this.nextPage, required this.blueText, required this.signUpText});
 
 	@override
 	Widget build(BuildContext context)
 	{
-		return Text.rich
+		return InkWell
 		(
-			TextSpan
+			onTap: () => nextPage(),
+			child: Text.rich
 			(
-				children:
-				[
-					TextSpan
-					(
-						text: signUpText ? "Don't have an account? " : "",
-						style: const TextStyle
+				TextSpan
+				(
+					children:
+					[
+						TextSpan
 						(
-							fontWeight: FontWeight.w500,
-							fontSize: 15
-						)
-					),
-					TextSpan
-					(
-						text: blueText,
-						style: const TextStyle
+							text: signUpText ? "Don't have an account? " : "",
+							style: const TextStyle
+							(
+								fontWeight: FontWeight.w500,
+								fontSize: 15
+							)
+						),
+						TextSpan
 						(
-							color: Colors.blue,
-							fontWeight: FontWeight.w900,
-							fontSize: 18
+							text: blueText,
+							style: const TextStyle
+							(
+								color: Colors.blue,
+								fontWeight: FontWeight.w900,
+								fontSize: 18
+							)
 						)
-					)
-				]
+					]
+				)
 			)
 		);
 	}
