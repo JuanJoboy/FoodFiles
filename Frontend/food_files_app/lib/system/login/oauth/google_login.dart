@@ -14,7 +14,7 @@ Future<void> signInWithGoogle(SupabaseClient supabase) async
         await googleSignIn.initialize
         (
             serverClientId: webClientId,
-            clientId: iosClientId.isEmpty ? null : iosClientId,
+			clientId: iosClientId.isEmpty ? null : iosClientId,
         );
 
         // Bypass lightweight authentication to force a fresh UI interactive login prompt
@@ -36,10 +36,17 @@ Future<void> signInWithGoogle(SupabaseClient supabase) async
             idToken: idToken,
             accessToken: authorization.accessToken,
         );
+
+		final User? currentUser = supabase.auth.currentUser;
+		print("=== SUPABASE LOGIN VERIFIED ===");
+		print("User ID: ${currentUser?.id}");
+		print("User Email: ${currentUser?.email}");
+		print("Metadata: ${currentUser?.userMetadata}");
     }
     on Exception catch (error)
     {
-		print(error);
+		print("=== GOOGLE SIGN IN FAILURE DETECTED ===");
+		print("Error Details: $error");
         rethrow;
     }
 }

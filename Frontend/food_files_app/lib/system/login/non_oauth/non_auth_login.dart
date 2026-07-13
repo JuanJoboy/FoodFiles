@@ -66,11 +66,10 @@ class _NonOAuthLoginState extends State<NonOAuthLogin>
 
 	Future<void> forgotPassword()
 	{
-		return Navigator.pushAndRemoveUntil
+		return Navigator.push
 		(
 			context,
 			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: ResetPassword())),
-			(Route<dynamic> route) => false,
 		);
 	}
 

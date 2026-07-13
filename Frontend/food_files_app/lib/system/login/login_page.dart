@@ -20,56 +20,34 @@ class _LoginPageState extends State<LoginPage>
     {
         final double sidePadding = Utils.screenWidth(context) / 6;
 
-        return LayoutBuilder
-        (
-            builder: (context, constraints)
-            {
-                return Scaffold
-                (
-                    body: SafeArea
-                    (
-                        child: SingleChildScrollView
-                        (
-                            physics: const BouncingScrollPhysics(),
-                            child: ConstrainedBox
-                            (
-                                constraints: BoxConstraints
-                                (
-                                    minHeight: constraints.maxHeight,
-                                ),
-                                child: IntrinsicHeight
-                                (
-                                    child: Padding
-                                    (
-                                        padding: EdgeInsets.symmetric(horizontal: sidePadding),
-                                        child: const Column
-                                        (
-                                            children: 
-                                            [
-                                                Spacer(flex: 1),
-                                                Header(),
-                                                Spacer(flex: 1),
+		return SafeSpace
+		(
+			child: Padding
+			(
+				padding: EdgeInsets.symmetric(horizontal: sidePadding),
+				child: const Column
+				(
+					children: 
+					[
+						Spacer(flex: 1),
+						Header(),
+						Spacer(flex: 1),
 
-                                                OAuthLogin(),
+						OAuthLogin(),
 
-                                                Spacer(flex: 1),
-                                                BreakLineText(),
-                                                Spacer(flex: 1),
+						Spacer(flex: 1),
+						BreakLineText(),
+						Spacer(flex: 1),
 
-                                                NonOAuthLogin(),
-                                                Spacer(flex: 4),
-                                            ],
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                );
-            },
-        );
+						NonOAuthLogin(),
+						Spacer(flex: 4),
+					],
+				),
+			)
+		);
     }
 }
+
 class Header extends StatelessWidget
 {
 	const Header({super.key});
@@ -194,7 +172,7 @@ class ButtonHelper extends StatelessWidget
 	@override
 	Widget build(BuildContext context)
 	{
-		if(buttonText == "Log In")
+		if(!buttonText.contains("Sign in with "))
 		{
 			return Center
 			(

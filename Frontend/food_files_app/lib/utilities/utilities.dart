@@ -34,6 +34,45 @@ class Utils
 	}
 }
 
+class SafeSpace extends StatelessWidget
+{
+	final Widget child;
+
+  	const SafeSpace({super.key, required this.child});
+
+	@override
+	Widget build(BuildContext context)
+	{
+        return LayoutBuilder
+        (
+            builder: (context, constraints)
+            {
+                return Scaffold
+                (
+                    body: SafeArea
+                    (
+                        child: SingleChildScrollView
+                        (
+                            physics: const BouncingScrollPhysics(),
+                            child: ConstrainedBox
+                            (
+                                constraints: BoxConstraints
+                                (
+                                    minHeight: constraints.maxHeight,
+                                ),
+                                child: IntrinsicHeight
+                                (
+                                    child: child,
+                                ),
+                            ),
+                        ),
+                    ),
+                );
+            },
+        );
+	}
+}
+
 class FoodFilesTitle extends StatelessWidget
 {
 	const FoodFilesTitle({super.key});
