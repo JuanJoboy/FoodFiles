@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:food_files_app/system/login/login_page.dart';
 import 'package:food_files_app/system/login/non_oauth/password_reset.dart';
+import 'package:food_files_app/system/login/non_oauth/sign_up.dart';
 import 'package:food_files_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
-class NonOAuthLogin extends StatefulWidget
+class NonOAuthLogin extends StatelessWidget
 {
-	const NonOAuthLogin({super.key});
+  	const NonOAuthLogin({super.key});
 
-	@override
-	State<NonOAuthLogin> createState() => _NonOAuthLoginState();
-}
-
-class _NonOAuthLoginState extends State<NonOAuthLogin>
-{
    	@override
 	Widget build(BuildContext context)
 	{
@@ -21,9 +16,9 @@ class _NonOAuthLoginState extends State<NonOAuthLogin>
 		(
 			children:
 			[
-				const EmailField(),
+				EmailField(controller: context.read<LoginNotifier>().emailController),
 				const SizedBox(height: 16),
-				const PasswordField(),
+				PasswordField(controller: context.read<LoginNotifier>().passwordController),
 				const SizedBox(height: 8),
 
 				Row
@@ -33,7 +28,7 @@ class _NonOAuthLoginState extends State<NonOAuthLogin>
 					[
 						BlueText
 						(
-							nextPage: () => forgotPassword(),
+							nextPage: () async => await context.read<NonAuthNotifier>().forgotPassword(context),
 							blueText: "Forgot Password?",
 							signUpText: false
 						)
@@ -43,7 +38,7 @@ class _NonOAuthLoginState extends State<NonOAuthLogin>
 				const SizedBox(height: 24),
 				LoginButton
 				(
-					buttonFunctionality: () async => await login(),
+					buttonFunctionality: () async => await context.read<LoginNotifier>().login(context),
 					buttonColor: Colors.blue,
 					buttonText: "Log In",
 				),
@@ -51,37 +46,20 @@ class _NonOAuthLoginState extends State<NonOAuthLogin>
 				const SizedBox(height: 16),
 				BlueText
 				(
-					nextPage: () => signUp(),
+					nextPage: () async => await context.read<NonAuthNotifier>().signUp(context),
 					blueText: "Sign Up",
 					signUpText: true
 				)
 			],
 		);
 	}
-
-	Future<void> login() async
-	{
-
-	}
-
-	Future<void> forgotPassword()
-	{
-		return Navigator.push
-		(
-			context,
-			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: ResetPassword())),
-		);
-	}
-
-	void signUp()
-	{
-
-	}
 }
 
 class EmailField extends StatelessWidget
 {
-	const EmailField({super.key});
+	final TextEditingController controller;
+
+	const EmailField({super.key, required this.controller});
 
 	@override
 	Widget build(BuildContext context)
@@ -96,17 +74,20 @@ class EmailField extends StatelessWidget
 					borderRadius: BorderRadius.circular(5)
 				),
 				hintText: context.watch<LoginNotifier>().emailFieldMsg,
-				hintStyle: const TextStyle(color: Colors.red),
+				hintStyle: TextStyle(color: context.read<LoginNotifier>().emailFieldMsg == "Email" ? Colors.black : Colors.red),
 				filled: true,
 			),
-			controller: context.read<LoginNotifier>().emailController,
+			controller: controller,
 		);
 	}
 }
 
 class PasswordField extends StatelessWidget
 {
-	const PasswordField({super.key});
+	final TextEditingController controller;
+
+
+	const PasswordField({super.key, required this.controller});
 
 	@override
 	Widget build(BuildContext context)
@@ -133,7 +114,7 @@ class PasswordField extends StatelessWidget
 				),
 				filled: true,
 			),
-			controller: loginNotifier.passwordController,
+			controller: controller,
 			obscureText: !loginNotifier.passwordVisible,
 			keyboardType: TextInputType.visiblePassword,
 			textInputAction: TextInputAction.done,
@@ -183,6 +164,74 @@ class BlueText extends StatelessWidget
 					]
 				)
 			)
+		);
+	}
+}
+
+class NonAuthNotifier extends ChangeNotifier
+{
+	// PRIVATE FIELDS
+	final TextEditingController _emailController = TextEditingController();
+	final TextEditingController _passwordController = TextEditingController();
+	String _emailFieldMsg = "Email";
+	bool _passwordVisible = false;
+
+	// GETTERS
+	TextEditingController get emailController => _emailController;
+	TextEditingController get passwordController => _passwordController;
+	String get emailFieldMsg => _emailFieldMsg;
+	bool get passwordVisible => _passwordVisible;
+
+	// SETTERS
+	void setEmailFieldMsg(String emailFieldMsg)
+	{
+		_emailFieldMsg = emailFieldMsg;
+		notifyListeners();
+	}
+
+	
+	void setPasswordVisible(bool passwordVisible)
+	{
+		_passwordVisible = passwordVisible;
+		notifyListeners();
+	}
+
+	// FUNCTIONS
+	@override
+	void dispose()
+	{
+		_emailController.dispose();
+		_passwordController.dispose();
+		super.dispose();
+	}
+
+	void resetControllers()
+	{
+		_emailController.clear();
+		_passwordController.clear();
+		notifyListeners();
+	}
+
+	bool areFieldsEmpty()
+	{
+		return (_emailController.text.trim().isEmpty) || (_passwordController.text.trim().isEmpty);
+	}
+
+	Future<void> forgotPassword(BuildContext context)
+	{
+		return Navigator.push
+		(
+			context,
+			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: ResetPassword())),
+		);
+	}
+
+	Future<void> signUp(BuildContext context)
+	{
+		return Navigator.push
+		(
+			context,
+			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: SignUp())),
 		);
 	}
 }
