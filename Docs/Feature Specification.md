@@ -89,6 +89,7 @@
 
 ## MISC
 - Put burger buns above and below the stuff on the login page
+- Update Policies here - https://app.flycricket.com/documents/policies/manage
 
 ## THOUGHTS
 - To do non-oauth login, have an email be sent to the address inputted. And if the user clicks on the verification link within 10 minutes, then its a valid email, and create an account for them. Otherwise display an error and have them retry it. Also see if Supabase already has this

@@ -52,6 +52,9 @@ dependencies:
   flutter_dotenv: ^6.0.1
   supabase_codegen: ^3.0.1
   google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.1.0
+  flutter_facebook_auth: ^7.0.0
+  
 
 dev_dependencies:
   flutter_test:

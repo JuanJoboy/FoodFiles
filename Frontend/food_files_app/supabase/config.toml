@@ -340,6 +340,18 @@ client_id = "1045387728460-vfaekc3e8ulqd2rchdk6ff9aisnh700s.apps.googleuserconte
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
 skip_nonce_check = true
 
+[auth.external.facebook]
+enabled = true
+client_id = "2225560468202865"
+secret = "env(SUPABASE_AUTH_EXTERNAL_FACEBOOK_CLIENT_SECRET)"
+redirect_uri = "https://localhost:54321/auth/v1/callback"
+
+[auth.external.microsoft]
+# enabled = true
+# client_id = "1045387728460-vfaekc3e8ulqd2rchdk6ff9aisnh700s.apps.googleusercontent.com,1045387728460-7b3rkkdn5bh75cflot7srjsbp7eqkhg7.apps.googleusercontent.com,1045387728460-ektedsv4e6cofcm81cd57g0f2ik9pu3h.apps.googleusercontent.com" # Web, Android, iOS
+# secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
+# skip_nonce_check = true
+
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
 [auth.web3.solana]
