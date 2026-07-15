@@ -12,13 +12,15 @@ class NonOAuthLogin extends StatelessWidget
    	@override
 	Widget build(BuildContext context)
 	{
+		final loginNotifier = context.read<LoginNotifier>();
+
 		return Column
 		(
 			children:
 			[
-				EmailField(controller: context.read<LoginNotifier>().emailController),
+				EmailField(controller: loginNotifier.emailController),
 				const SizedBox(height: 16),
-				PasswordField(controller: context.read<LoginNotifier>().passwordController),
+				PasswordField(controller: loginNotifier.passwordController, passwordVisible: loginNotifier.passwordVisible, setPasswordVisible: (value) => loginNotifier.setPasswordVisible(!value)),
 				const SizedBox(height: 8),
 
 				Row
@@ -85,15 +87,14 @@ class EmailField extends StatelessWidget
 class PasswordField extends StatelessWidget
 {
 	final TextEditingController controller;
+	final bool passwordVisible;
+	final Function(bool) setPasswordVisible;
 
-
-	const PasswordField({super.key, required this.controller});
+	const PasswordField({super.key, required this.controller, required this.passwordVisible, required this.setPasswordVisible});
 
 	@override
 	Widget build(BuildContext context)
 	{
-		final loginNotifier = context.read<LoginNotifier>();
-
 		return TextField
 		(
 			decoration: InputDecoration
@@ -106,16 +107,16 @@ class PasswordField extends StatelessWidget
 				hintText: "Password",
 				suffixIcon: IconButton
 				(
-					icon: Icon(loginNotifier.passwordVisible ? Icons.visibility : Icons.visibility_off),
+					icon: Icon(passwordVisible ? Icons.visibility : Icons.visibility_off),
 					onPressed: ()
 					{
-						loginNotifier.setPasswordVisible(!loginNotifier.passwordVisible);
+						setPasswordVisible(passwordVisible);
 					},
 				),
 				filled: true,
 			),
 			controller: controller,
-			obscureText: !loginNotifier.passwordVisible,
+			obscureText: passwordVisible,
 			keyboardType: TextInputType.visiblePassword,
 			textInputAction: TextInputAction.done,
 		);
@@ -188,7 +189,6 @@ class NonAuthNotifier extends ChangeNotifier
 		_emailFieldMsg = emailFieldMsg;
 		notifyListeners();
 	}
-
 	
 	void setPasswordVisible(bool passwordVisible)
 	{

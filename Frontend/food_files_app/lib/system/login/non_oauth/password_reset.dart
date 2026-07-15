@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_files_app/system/login/login_page.dart';
+import 'package:food_files_app/system/login/non_oauth/non_auth_login.dart';
 import 'package:food_files_app/utilities/utilities.dart';
 import 'package:provider/provider.dart';
 
@@ -25,14 +26,14 @@ class ResetPassword extends StatelessWidget
 						const Header(),
 						const Spacer(flex: 1),
 
-						EmailField(),
-						PasswordField(),
-						PasswordField2(),
+						EmailField(controller: context.read<PasswordResetNotifier>()._emailController),
+						PasswordField(controller: context.read<PasswordResetNotifier>().password1Controller),
+						PasswordField(controller: context.read<PasswordResetNotifier>().password2Controller),
 
 						const Spacer(flex: 1),
 						LoginButton
 						(
-							buttonFunctionality: () async => await next(context),
+							buttonFunctionality: () async => await context.read<PasswordResetNotifier>().next(context),
 							buttonColor: Colors.blue,
 							buttonText: "Next",
 						),
@@ -40,16 +41,6 @@ class ResetPassword extends StatelessWidget
 					],
 				),
 			)
-		);
-	}
-
-	Future<void> next(BuildContext context)
-	{
-		return Navigator.pushAndRemoveUntil
-		(
-			context,
-			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: LoginPage())),
-			(Route<dynamic> route) => false,
 		);
 	}
 }
@@ -61,7 +52,7 @@ class Header extends StatelessWidget
 	@override
 	Widget build(BuildContext context)
 	{
-		return Column
+		return const Column
 		(
 			children:
 			[
@@ -74,101 +65,74 @@ class Header extends StatelessWidget
 	}
 }
 
-class EmailField extends StatelessWidget
+class PasswordResetNotifier extends ChangeNotifier
 {
-	const EmailField({super.key});
+	// PRIVATE FIELDS
+	final TextEditingController _emailController = TextEditingController();
+	final TextEditingController _password1Controller = TextEditingController();
+	final TextEditingController _password2Controller = TextEditingController();
+	String _emailFieldMsg = "Email";
+	bool _password1Visible = false;
+	bool _password2Visible = false;
 
-	@override
-	Widget build(BuildContext context)
+	// GETTERS
+	TextEditingController get emailController => _emailController;
+	TextEditingController get password1Controller => _password1Controller;
+	TextEditingController get password2Controller => _password2Controller;
+	String get emailFieldMsg => _emailFieldMsg;
+	bool get password1Visible => _password1Visible;
+	bool get password2Visible => _password2Visible;
+
+	// SETTERS
+	void setEmailFieldMsg(String emailFieldMsg)
 	{
-		return TextField
-		(
-			decoration: InputDecoration
-			(
-				border: const OutlineInputBorder(),
-				enabledBorder: OutlineInputBorder
-				(
-					borderRadius: BorderRadius.circular(5)
-				),
-				hintText: context.watch<LoginNotifier>().emailFieldMsg,
-				hintStyle: const TextStyle(color: Colors.red),
-				filled: true,
-			),
-			controller: context.read<LoginNotifier>().emailController,
-		);
+		_emailFieldMsg = emailFieldMsg;
+		notifyListeners();
 	}
-}
 
-class PasswordField extends StatelessWidget
-{
-	const PasswordField({super.key});
-
-	@override
-	Widget build(BuildContext context)
+	
+	void setPassword1Visible(bool password1Visible)
 	{
-		final loginNotifier = context.read<LoginNotifier>();
-
-		return TextField
-		(
-			decoration: InputDecoration
-			(
-				border: const OutlineInputBorder(),
-				enabledBorder: OutlineInputBorder
-				(
-					borderRadius: BorderRadius.circular(5)
-				),
-				hintText: "Password",
-				suffixIcon: IconButton
-				(
-					icon: Icon(loginNotifier.passwordVisible ? Icons.visibility : Icons.visibility_off),
-					onPressed: ()
-					{
-						loginNotifier.setPasswordVisible(!loginNotifier.passwordVisible);
-					},
-				),
-				filled: true,
-			),
-			controller: loginNotifier.passwordController,
-			obscureText: !loginNotifier.passwordVisible,
-			keyboardType: TextInputType.visiblePassword,
-			textInputAction: TextInputAction.done,
-		);
+		_password1Visible = password1Visible;
+		notifyListeners();
 	}
-}
 
-class PasswordField2 extends StatelessWidget
-{
-	const PasswordField2({super.key});
-
-	@override
-	Widget build(BuildContext context)
+	void setPassword2Visible(bool password2Visible)
 	{
-		final loginNotifier = context.read<LoginNotifier>();
+		_password2Visible = password2Visible;
+		notifyListeners();
+	}
 
-		return TextField
+	// FUNCTIONS
+	@override
+	void dispose()
+	{
+		_emailController.dispose();
+		_password1Controller.dispose();
+		_password2Controller.dispose();
+		super.dispose();
+	}
+
+	void resetControllers()
+	{
+		_emailController.clear();
+		_password1Controller.clear();
+		_password2Controller.clear();
+		notifyListeners();
+	}
+
+	bool areFieldsEmpty()
+	{
+		return (_emailController.text.trim().isEmpty) || (_password1Controller.text.trim().isEmpty) || (_password2Controller.text.trim().isEmpty);
+	}
+
+	Future<void> next(BuildContext context)
+	{
+		return Navigator.pushAndRemoveUntil
 		(
-			decoration: InputDecoration
-			(
-				border: const OutlineInputBorder(),
-				enabledBorder: OutlineInputBorder
-				(
-					borderRadius: BorderRadius.circular(5)
-				),
-				hintText: "Password",
-				suffixIcon: IconButton
-				(
-					icon: Icon(loginNotifier.passwordVisible ? Icons.visibility : Icons.visibility_off),
-					onPressed: ()
-					{
-						loginNotifier.setPasswordVisible(!loginNotifier.passwordVisible);
-					},
-				),
-				filled: true,
-			),
-			controller: loginNotifier.passwordController,
-			obscureText: !loginNotifier.passwordVisible,
-			keyboardType: TextInputType.visiblePassword,
-			textInputAction: TextInputAction.done,
+			context,
+			MaterialPageRoute(builder: (context) => const PageSwitcher(nextPage: LoginPage())),
+			(Route<dynamic> route) => false,
 		);
 	}
 }

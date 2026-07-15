@@ -16,6 +16,7 @@ import "package:food_files_app/main_ui/profile/profile.dart";
 import "package:food_files_app/main_ui/profile/folders/restaurant_folder.dart";
 import "package:food_files_app/system/login/login_page.dart";
 import "package:food_files_app/system/login/non_oauth/non_auth_login.dart";
+import "package:food_files_app/system/login/non_oauth/password_reset.dart";
 import "package:food_files_app/utilities/colours.dart";
 import "package:food_files_app/utilities/settings.dart";
 import "package:food_files_app/utilities/utilities.dart";
@@ -63,6 +64,7 @@ void main() async
 			[
 				ChangeNotifierProvider(create: (context) => LoginNotifier()),
 				ChangeNotifierProvider(create: (context) => NonAuthNotifier()),
+				ChangeNotifierProvider(create: (context) => PasswordResetNotifier()),
 				ChangeNotifierProvider(create: (context) => NavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ProfileNavigationNotifier()),
 				ChangeNotifierProvider(create: (context) => ThemeNotifier()),

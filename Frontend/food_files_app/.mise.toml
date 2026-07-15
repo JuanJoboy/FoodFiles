@@ -1,5 +1,5 @@
 [tools]
-flutter = "3" # Forces mise to always download the newest version, but strictly limits it to 3.x releases
+flutter = "3.44.6" # Forces mise to always download the newest version, but strictly limits it to 3.x releases
 java = "corretto-17" # Forces mise to fetch the newest Java 17 release without jumping to Java 21+
 supabase = "latest"
 # python = "latest"
