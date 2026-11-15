@@ -25,9 +25,9 @@ class SignUp extends StatelessWidget
 						const Header(),
 						const Spacer(flex: 1),
 
-						EmailField(),
-						PasswordField(),
-						PasswordField2(),
+						const EmailField(),
+						const PasswordField(),
+						const PasswordField2(),
 
 						const Spacer(flex: 1),
 						LoginButton
@@ -61,7 +61,7 @@ class Header extends StatelessWidget
 	@override
 	Widget build(BuildContext context)
 	{
-		return Column
+		return const Column
 		(
 			children:
 			[

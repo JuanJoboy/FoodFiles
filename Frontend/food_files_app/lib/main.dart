@@ -1,10 +1,8 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
-import "dart:io";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:flutter/services.dart";
-import "package:food_files_app/system/app_updater.dart";
 import "package:food_files_app/main_ui/feed/feed.dart";
 import "package:food_files_app/main_ui/post/components/post_description_controller.dart";
 // import "package:food_files_app/main_ui/post/post.dart";

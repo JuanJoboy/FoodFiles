@@ -5,9 +5,9 @@
 - Login:
     - OAuth Login:
         - Google
-        - Microsoft
+        <!-- - Microsoft
         - Apple
-        - Facebook
+        - Facebook -->
     - Non-OAuth Login:
         - Email
         - Password
@@ -49,6 +49,7 @@
         - Rating - Required
         - Picture - Optional
         - Post Visibility - Required | Public / Friends Only / Private
+        - Triangle - Nutrition | Satisfaction / Enjoyment | Price
 - An Explore page that shows the posts of anyone with a public account
     - Filters will be available here to filter what is shown on the page
         - Date

@@ -27,8 +27,6 @@ class ResetPassword extends StatelessWidget
 						const Spacer(flex: 1),
 
 						EmailField(controller: context.read<PasswordResetNotifier>()._emailController),
-						PasswordField(controller: context.read<PasswordResetNotifier>().password1Controller),
-						PasswordField(controller: context.read<PasswordResetNotifier>().password2Controller),
 
 						const Spacer(flex: 1),
 						LoginButton
