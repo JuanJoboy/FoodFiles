@@ -28,7 +28,7 @@ void main() async
 	// Map Box and camera stuff
 	WidgetsFlutterBinding.ensureInitialized();
 
-	await dotenv.load(fileName: ".env");
+	await dotenv.load(fileName: "assets/env");
 
 	String supabaseUrl = 'http://127.0.0.1:54321';
 

@@ -8,7 +8,7 @@
 Ask me about these files:
 - `FoodFiles\Frontend\food_files_app\android\app\src\main\res\values\mapbox_access_token.xml`
 - `FoodFiles\.vscode\launch.json`
-- `FoodFiles\Frontend\food_files_app\.env`
+- `FoodFiles\Frontend\food_files_app\assets\env`
 
 </details>
 
@@ -19,7 +19,7 @@ Ask me about these files:
 
 ### Team Environment Onboarding Guide
 
-We are using **`mise`** to completely automate our development environments. This ensures all three of us are using the exact same versions of Flutter, Java, and local configurations without manually installing tools or breaking paths.
+We are using **`mise`** to completely automate our development environments. This ensures we are using the exact same versions of Flutter, Java, and local configurations without manually installing tools or breaking paths.
 
 Follow these steps once to configure your machine.
 
