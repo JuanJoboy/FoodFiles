@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // ThemeExtension allows you to add custom, strongly-typed design tokens
 class AppColours extends ThemeExtension<AppColours>

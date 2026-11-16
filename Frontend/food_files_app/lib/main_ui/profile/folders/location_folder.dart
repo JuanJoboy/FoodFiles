@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:food_files_app/main_ui/feed/feed.dart';
 import 'package:food_files_app/main_ui/profile/folders/restaurant_folder.dart';
 import 'package:food_files_app/utilities/utilities.dart';

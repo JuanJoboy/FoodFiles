@@ -15,6 +15,15 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
+subprojects {
+    if (name == "mapbox_maps_flutter_mobile") {
+        beforeEvaluate {
+            apply(plugin = "kotlin-android")
+        }
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
