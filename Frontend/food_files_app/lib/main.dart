@@ -1,7 +1,7 @@
 // import "package:english_words/english_words.dart"; // Imports a utility package containing thousands of common English words and functions to manipulate them. Used here to generate random WordPair objects.
 
 import "package:flutter/foundation.dart";
-import "package:flutter/material.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
+import "package:material_ui/material_ui.dart"; // The core Flutter framework. It provides "Material Design" widgets (buttons, cards, scaffolds) and the engine for rendering the UI.
 import "package:flutter/services.dart";
 import "package:food_files_app/main_ui/feed/feed.dart";
 import "package:food_files_app/main_ui/post/components/post_description_controller.dart";
@@ -28,7 +28,7 @@ void main() async
 	// Map Box and camera stuff
 	WidgetsFlutterBinding.ensureInitialized();
 
-	await dotenv.load(fileName: ".env");
+	await dotenv.load(fileName: "assets/env");
 
 	String supabaseUrl = 'http://127.0.0.1:54321';
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
@@ -72,7 +72,7 @@ class MapNotifier extends ChangeNotifier
 			}
 		}
 		
-		_mapboxMap?.style.setStyleImportConfigProperty("basemap", "lightPreset", value);
+		_mapboxMap?.setStyleImportConfigProperty("basemap", "lightPreset", value);
 	}
 
 	Future<String> getInfoFromTap(double longitude, double latitude) async

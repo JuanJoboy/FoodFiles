@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:food_files_app/main_ui/post/components/post_calendar.dart';
 import 'package:food_files_app/main_ui/post/map/map_controller.dart';
 import 'package:food_files_app/utilities/utilities.dart';
@@ -145,8 +145,8 @@ class Map extends StatelessWidget
 				(
 					FeaturesetDescriptor(featuresetId: "poi", importId: "basemap"), (poiIcon, tapContext)
 					{
-						context.read<MapNotifier>().mapboxMap?.style.setStyleImportConfigProperty("basemap", "lightPreset", "day");
-						context.read<MapNotifier>().mapboxMap?.style.setStyleImportConfigProperty("basemap", "showPointOfInterestLabels", true);
+						context.read<MapNotifier>().mapboxMap?.setStyleImportConfigProperty("basemap", "lightPreset", "day");
+						context.read<MapNotifier>().mapboxMap?.setStyleImportConfigProperty("basemap", "showPointOfInterestLabels", true);
 
 						// poiIcon features = {group: poi, class: food_and_drink, maki: restaurant, name: Took Bae Kee}
 						final String restaurant = (poiIcon.properties["name"] ?? poiIcon.properties["name_en"] ?? "Unknown Restaurant") as String;

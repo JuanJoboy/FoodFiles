@@ -218,7 +218,7 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = true
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -256,7 +256,7 @@ otp_expiry = 3600
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
@@ -316,41 +316,11 @@ max_frequency = "5s"
 # enroll_enabled = true
 # verify_enabled = true
 
-# Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
-# `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
-# `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
-[auth.external.apple]
-enabled = false
-client_id = ""
-# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
-secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
-# Overrides the default auth callback URL derived from auth.external_url.
-redirect_uri = ""
-# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
-# or any other third-party OIDC providers.
-url = ""
-# If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
-skip_nonce_check = false
-# If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
-email_optional = false
-
 [auth.external.google]
 enabled = true
 client_id = "1045387728460-vfaekc3e8ulqd2rchdk6ff9aisnh700s.apps.googleusercontent.com,1045387728460-7b3rkkdn5bh75cflot7srjsbp7eqkhg7.apps.googleusercontent.com,1045387728460-ektedsv4e6cofcm81cd57g0f2ik9pu3h.apps.googleusercontent.com" # Web, Android, iOS
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
 skip_nonce_check = true
-
-[auth.external.facebook]
-enabled = true
-client_id = "2225560468202865"
-secret = "env(SUPABASE_AUTH_EXTERNAL_FACEBOOK_CLIENT_SECRET)"
-redirect_uri = "https://localhost:54321/auth/v1/callback"
-
-[auth.external.microsoft]
-# enabled = true
-# client_id = "1045387728460-vfaekc3e8ulqd2rchdk6ff9aisnh700s.apps.googleusercontent.com,1045387728460-7b3rkkdn5bh75cflot7srjsbp7eqkhg7.apps.googleusercontent.com,1045387728460-ektedsv4e6cofcm81cd57g0f2ik9pu3h.apps.googleusercontent.com" # Web, Android, iOS
-# secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
-# skip_nonce_check = true
 
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.

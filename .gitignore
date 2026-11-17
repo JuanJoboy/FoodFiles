@@ -377,7 +377,6 @@ lib/generated_plugin_registrant.dart
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
 ### VisualStudioCode ###
-.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -648,4 +647,4 @@ FodyWeavers.xsd
 
 # API key
 android/app/src/main/res/values/mapbox_access_token.xml
-*launch.json
+launch.json

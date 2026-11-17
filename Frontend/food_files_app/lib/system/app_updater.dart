@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:in_app_update_flutter/in_app_update_flutter.dart';
 
 /// iOS: Shows the App Store product page overlay via StoreKit.

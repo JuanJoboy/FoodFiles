@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:food_files_app/main_ui/post/components/post_description.dart';
 import 'package:food_files_app/utilities/utilities.dart';
 

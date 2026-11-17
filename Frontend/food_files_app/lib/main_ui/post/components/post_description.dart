@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:food_files_app/main_ui/post/components/post_camera.dart';
 import 'package:food_files_app/main_ui/post/components/post_description_controller.dart';
