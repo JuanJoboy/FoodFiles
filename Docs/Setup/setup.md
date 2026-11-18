@@ -1,3 +1,10 @@
+# Developer Setup & Environment Guide
+
+This document covers local machine configuration and daily development workflows:
+- Recreating gitignored secrets and environment files
+- Managing the Supabase CLI with `mise`
+- Orchestrating the local Supabase Docker stack and local IP routing
+- Connecting physical Android devices via wireless ADB
 
 ---
 

@@ -61,3 +61,8 @@ Your profile automatically structures your food history into dedicated tabs:
 - **Frontend:** Flutter (Dart) targeting iOS and Android
 - **Backend & Auth:** Supabase, PostgreSQL
 - **Maps & Geocoding:** Mapbox SDK
+
+---
+
+## Setup
+- To get setup, please read the [following guide](Setup\setup.md)
